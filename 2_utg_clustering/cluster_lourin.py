@@ -38,6 +38,10 @@ class UTGLouvainClustering:
         self.final_partition: Dict[str, str] = {}  # 最终分区 {state_str -> community_id}
         self.modularity_history: List[float] = []  # 每层的模块度
         
+        # 输出相关属性
+        self.output_folder = Path(f"{utg_folder}_louvain_clustered")
+        self.state_id_to_cluster: Dict[str, str] = {}  # state_id -> cluster_id映射
+        
         # 算法参数
         self.resolution = 1.0  # 分辨率参数，控制社区大小
         self.random_seed = 42
@@ -469,6 +473,196 @@ class UTGLouvainClustering:
         # 如果没有历史记录，返回原始分区（但这不应该发生）
         return partition
     
+    def _load_state_file(self, state_file_path: Path) -> Optional[Dict[str, Any]]:
+        """
+        加载state JSON文件
+        
+        Args:
+            state_file_path: state文件路径
+            
+        Returns:
+            解析后的state数据字典，如果文件无效则返回None
+        """
+        try:
+            with open(state_file_path, 'r', encoding='utf-8') as f:
+                content = f.read().strip()
+                if not content:
+                    return None
+                
+                data = json.loads(content)
+                
+                # 验证必要的属性
+                if not isinstance(data, dict):
+                    return None
+                
+                # 检查必要的state属性
+                if "state_str" not in data:
+                    return None
+                
+                return data
+                
+        except (json.JSONDecodeError, Exception):
+            return None
+    
+    def _load_event_file(self, event_file_path: Path) -> Optional[Dict[str, Any]]:
+        """
+        加载event JSON文件
+        
+        Args:
+            event_file_path: event文件路径
+            
+        Returns:
+            解析后的event数据字典，如果文件无效则返回None
+        """
+        try:
+            with open(event_file_path, 'r', encoding='utf-8') as f:
+                content = f.read().strip()
+                if not content:
+                    return None
+                
+                data = json.loads(content)
+                
+                # 验证必要的属性
+                if not isinstance(data, dict):
+                    return None
+                
+                # 检查必要的event属性
+                required_fields = ['event_str', 'start_state', 'stop_state']
+                for field in required_fields:
+                    if field not in data:
+                        return None
+                
+                return data
+                
+        except (json.JSONDecodeError, Exception):
+            return None
+    
+    def state_clustering(self, state_data: Dict[str, Any]) -> str:
+        """
+        为state分配聚类ID（基于Louvain结果）
+        
+        Args:
+            state_data: state的JSON数据
+            
+        Returns:
+            该state所属的cluster_id
+        """
+        state_str = state_data.get("state_str", "")
+        
+        if state_str in self.final_partition:
+            cluster_id = self.final_partition[state_str]
+        else:
+            cluster_id = "unknown_cluster"
+        
+        # 更新映射
+        self.state_id_to_cluster[state_str] = cluster_id
+        
+        return cluster_id
+    
+    def event_clustering(self, event_data: Dict[str, Any]) -> Tuple[str, str]:
+        """
+        为event获取聚类ID（基于start_state和stop_state的聚类）
+        
+        Args:
+            event_data: event的JSON数据
+            
+        Returns:
+            (start_cluster, stop_cluster)元组
+        """
+        start_state = event_data.get("start_state", "")
+        stop_state = event_data.get("stop_state", "")
+        
+        start_cluster = self.final_partition.get(start_state, "unknown_cluster")
+        stop_cluster = self.final_partition.get(stop_state, "unknown_cluster")
+        
+        return start_cluster, stop_cluster
+    
+    def _process_states(self):
+        """
+        处理所有state文件并生成聚类结果
+        """
+        state_files = list(self.states_folder.glob("state_*.json"))
+        processed_count = 0
+        skipped_count = 0
+        
+        print(f"开始处理 {len(state_files)} 个state文件...")
+        
+        # 创建输出目录
+        (self.output_folder / "states").mkdir(parents=True, exist_ok=True)
+        
+        for state_file in state_files:
+            # 加载state数据
+            state_data = self._load_state_file(state_file)
+            
+            # 跳过无效文件
+            if state_data is None:
+                skipped_count += 1
+                print(f"跳过无效的state文件: {state_file}")
+                continue
+            
+            # 进行聚类
+            cluster_id = self.state_clustering(state_data)
+            
+            # 生成输出数据
+            output_data = {
+                "state_str": state_data.get("state_str", ""),
+                "state_cluster_id": cluster_id
+            }
+            
+            # 保存到输出文件
+            output_file = self.output_folder / "states" / state_file.name
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(output_data, f, indent=2, ensure_ascii=False)
+            
+            processed_count += 1
+        
+        print(f"States处理完成: 成功处理 {processed_count} 个文件，跳过 {skipped_count} 个无效文件")
+        print(f"建立了 {len(self.state_id_to_cluster)} 个state_id映射")
+    
+    def _process_events(self):
+        """
+        处理所有event文件并生成聚类结果
+        """
+        event_files = list(self.events_folder.glob("event_*.json"))
+        processed_count = 0
+        skipped_count = 0
+        
+        print(f"开始处理 {len(event_files)} 个event文件...")
+        
+        # 创建输出目录
+        (self.output_folder / "events").mkdir(parents=True, exist_ok=True)
+        
+        for event_file in event_files:
+            # 加载event数据
+            event_data = self._load_event_file(event_file)
+            
+            # 跳过无效文件
+            if event_data is None:
+                skipped_count += 1
+                print(f"跳过无效的event文件: {event_file}")
+                continue
+            
+            # 进行聚类
+            start_cluster, stop_cluster = self.event_clustering(event_data)
+            
+            # 生成输出数据
+            output_data = {
+                "event_str": event_data.get("event_str", ""),
+                "start_state": event_data.get("start_state", ""),
+                "stop_state": event_data.get("stop_state", ""),
+                "start_cluster": start_cluster,
+                "stop_cluster": stop_cluster
+            }
+            
+            # 保存到输出文件
+            output_file = self.output_folder / "events" / event_file.name
+            with open(output_file, 'w', encoding='utf-8') as f:
+                json.dump(output_data, f, indent=2, ensure_ascii=False)
+            
+            processed_count += 1
+        
+        print(f"Events处理完成: 成功处理 {processed_count} 个文件，跳过 {skipped_count} 个无效文件")
+    
     def save_clustering_results(self, output_folder: str):
         """
         保存聚类结果
@@ -535,7 +729,10 @@ class UTGLouvainClustering:
             
             # 创建颜色映射
             communities = list(set(self.final_partition.values()))
-            colors = plt.cm.Set3(np.linspace(0, 1, len(communities)))
+            # 生成随机颜色
+            colors = []
+            for i in range(len(communities)):
+                colors.append((np.random.random(), np.random.random(), np.random.random()))
             color_map = dict(zip(communities, colors))
             
             # 设置节点颜色
@@ -578,6 +775,10 @@ def main():
     
     # 执行Louvain聚类
     final_partition = clusterer.run_louvain_clustering()
+    
+    # 处理状态和事件文件
+    clusterer._process_states()
+    clusterer._process_events()
     
     # 保存结果
     output_folder = "utg_louvain_results"
