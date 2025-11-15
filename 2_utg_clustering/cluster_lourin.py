@@ -46,6 +46,15 @@ class UTGLouvainClustering:
         self.resolution = 1.0  # 分辨率参数，控制社区大小
         self.random_seed = 42
         
+        # 层次聚类参数
+        self.max_clusters = 10  # 最大聚类数阈值
+        self.min_cluster_size = 5  # 最小聚类大小
+        self.hierarchical_levels = []  # 存储每一层的聚类结果
+        
+        # 过滤相关
+        self.filtered_states: Set[str] = set()  # 被过滤掉的孤立状态
+        self.connected_states: Set[str] = set()  # 有连接的状态
+        
         # 验证输入结构
         self._validate_input_structure()
     
@@ -87,7 +96,12 @@ class UTGLouvainClustering:
         # 计算边权重
         self._calculate_edge_weights()
         
-        print(f"UTG加载完成: {len(self.graph.nodes)} 个状态, {len(self.graph.edges)} 条转换")
+        # 过滤孤立状态
+        self.filter_isolated_states()
+        
+        print(f"UTG加载完成: {len(self.graph.nodes)} 个连通状态, {len(self.graph.edges)} 条转换")
+        if self.filtered_states:
+            print(f"已过滤掉 {len(self.filtered_states)} 个孤立状态")
     
     def _load_states(self):
         """
@@ -212,18 +226,122 @@ class UTGLouvainClustering:
         
         return min(similarity_score, 1.0)
     
+    def filter_isolated_states(self):
+        """
+        过滤掉没有任何连接的孤立状态节点
+        
+        孤立状态定义：
+        1. 没有任何边从该状态出发
+        2. 没有任何边到达该状态
+        3. 即该状态在图中的度为0
+        """
+        print("正在过滤孤立状态...")
+        
+        # 找出所有在事件中出现的状态（有连接的状态）
+        connected_states = set()
+        
+        for event_data in self.events_data:
+            start_state = event_data.get("start_state")
+            stop_state = event_data.get("stop_state")
+            
+            if start_state:
+                connected_states.add(start_state)
+            if stop_state:
+                connected_states.add(stop_state)
+        
+        # 找出孤立状态（存在于states_data但不在connected_states中）
+        all_states = set(self.states_data.keys())
+        isolated_states = all_states - connected_states
+        
+        # 记录过滤结果
+        self.connected_states = connected_states
+        self.filtered_states = isolated_states
+        
+        # 从states_data中移除孤立状态
+        for isolated_state in isolated_states:
+            if isolated_state in self.states_data:
+                del self.states_data[isolated_state]
+        
+        # 从图中移除孤立节点
+        for isolated_state in isolated_states:
+            if self.graph.has_node(isolated_state):
+                self.graph.remove_node(isolated_state)
+            if self.weighted_graph.has_node(isolated_state):
+                self.weighted_graph.remove_node(isolated_state)
+        
+        print(f"过滤完成: 保留 {len(connected_states)} 个连通状态，"
+              f"过滤掉 {len(isolated_states)} 个孤立状态")
+        
+        if isolated_states:
+            print(f"被过滤的孤立状态示例: {list(isolated_states)[:5]}")
+    
     def run_louvain_clustering(self) -> Dict[str, str]:
         """
-        执行Louvain算法进行UTG聚类（修复版）
+        执行层次Louvain算法进行UTG聚类
         
         Returns:
             最终的分区结果 {state_str -> community_id}
         """
-        print("开始执行Louvain聚类算法...")
+        print("开始执行层次Louvain聚类算法...")
         
         # 设置随机种子
         random.seed(self.random_seed)
         
+        # 第一层：基础Louvain聚类
+        level_0_partition = self._run_single_louvain()
+        self.hierarchical_levels.append(level_0_partition)
+        
+        current_partition = level_0_partition
+        level = 0
+        
+        while True:
+            level += 1
+            print(f"\n=== 开始第 {level} 层聚类 ===")
+            
+            # 检查是否满足停止条件
+            cluster_count = len(set(current_partition.values()))
+            print(f"当前聚类数: {cluster_count}")
+            
+            if self._should_stop_hierarchical_clustering(current_partition):
+                print(f"满足停止条件，层次聚类结束")
+                break
+            
+            # 构建聚类间的图
+            cluster_graph = self._build_cluster_graph(current_partition)
+            
+            if len(cluster_graph.nodes()) <= 1:
+                print("聚类图只有一个节点，无法继续聚类")
+                break
+            
+            # 对聚类进行再次聚类
+            cluster_partition = self._run_cluster_louvain(cluster_graph)
+            
+            # 将聚类级别的分区映射回原始状态
+            new_partition = self._map_cluster_partition_to_states(current_partition, cluster_partition)
+            
+            # 检查是否有改进
+            if len(set(new_partition.values())) >= len(set(current_partition.values())):
+                print(f"聚类数没有减少，停止层次聚类")
+                break
+            
+            # 更新当前分区
+            current_partition = new_partition
+            self.hierarchical_levels.append(current_partition)
+            
+            print(f"第 {level} 层完成，聚类数: {len(set(current_partition.values()))}")
+        
+        self.final_partition = current_partition
+        print(f"\n层次聚类完成，最终聚类数: {len(set(self.final_partition.values()))}")
+        
+        return self.final_partition
+    
+    def _run_single_louvain(self) -> Dict[str, str]:
+        """
+        执行单层Louvain算法
+        
+        Returns:
+            分区结果 {state_str -> community_id}
+        """
         # 初始化：每个节点为一个社区
         current_partition = {node: str(i) for i, node in enumerate(self.weighted_graph.nodes())}
         current_graph = self.weighted_graph.copy()
@@ -234,7 +352,7 @@ class UTGLouvainClustering:
         iteration = 0
         while True:
             iteration += 1
-            print(f"Louvain算法第 {iteration} 轮迭代...")
+            print(f"  Louvain第 {iteration} 轮迭代...")
             
             # 阶段1：局部优化
             new_partition = self._phase1_optimize(current_graph, current_partition)
@@ -249,15 +367,17 @@ class UTGLouvainClustering:
             
             # 检查收敛条件
             if self._is_converged(current_partition, new_partition):
-                print(f"算法收敛，最终模块度: {current_modularity:.4f}")
+                print(f"  算法收敛，模块度: {current_modularity:.4f}")
                 
                 # 如果收敛发生在第一轮，直接使用结果
                 if iteration == 1:
-                    self.final_partition = new_partition
+                    return new_partition
                 else:
                     # 否则使用第一轮的结果作为最终结果
-                    self.final_partition = first_round_partition
-                break
+                    if first_round_partition is not None:
+                        return first_round_partition
+                    else:
+                        return new_partition
             
             # 存储分区结果
             if iteration == 1:
@@ -268,9 +388,126 @@ class UTGLouvainClustering:
             current_graph = self._phase2_aggregate(current_graph, new_partition)
             current_partition = {node: str(i) for i, node in enumerate(current_graph.nodes())}
             
-            print(f"第 {iteration} 轮完成，社区数: {len(set(new_partition.values()))}, 模块度: {current_modularity:.4f}")
+            print(f"  第 {iteration} 轮完成，社区数: {len(set(new_partition.values()))}, 模块度: {current_modularity:.4f}")
         
-        return self.final_partition
+        return first_round_partition or new_partition
+    
+    def _should_stop_hierarchical_clustering(self, partition: Dict[str, str]) -> bool:
+        """
+        判断是否应该停止层次聚类
+        
+        Args:
+            partition: 当前分区
+            
+        Returns:
+            是否应该停止
+        """
+        cluster_count = len(set(partition.values()))
+        
+        # 条件1: 聚类数已经达到阈值
+        if cluster_count <= self.max_clusters:
+            return True
+        
+        # 条件2: 检查聚类大小分布
+        cluster_sizes = defaultdict(int)
+        for state in partition.values():
+            cluster_sizes[state] += 1
+        
+        # 如果大部分聚类都很小，继续合并
+        small_clusters = sum(1 for size in cluster_sizes.values() if size < self.min_cluster_size)
+        total_clusters = len(cluster_sizes)
+        
+        # 如果小聚类比例低于30%，可以停止
+        if small_clusters / total_clusters < 0.3:
+            return True
+        
+        return False
+    
+    def _build_cluster_graph(self, partition: Dict[str, str]) -> nx.Graph:
+        """
+        构建聚类间的图
+        
+        Args:
+            partition: 当前分区
+            
+        Returns:
+            聚类间的图
+        """
+        cluster_graph = nx.Graph()
+        
+        # 获取所有聚类
+        clusters = set(partition.values())
+        
+        # 添加聚类节点
+        for cluster in clusters:
+            cluster_graph.add_node(cluster)
+        
+        # 计算聚类间的连接权重
+        cluster_connections = defaultdict(float)
+        
+        for event_data in self.events_data:
+            start_state = event_data.get("start_state")
+            stop_state = event_data.get("stop_state")
+            
+            if start_state in partition and stop_state in partition:
+                start_cluster = partition[start_state]
+                stop_cluster = partition[stop_state]
+                
+                # 只考虑跨聚类的连接
+                if start_cluster != stop_cluster:
+                    edge_key = tuple(sorted([start_cluster, stop_cluster]))
+                    cluster_connections[edge_key] += 1
+        
+        # 添加聚类间的边
+        for (cluster1, cluster2), weight in cluster_connections.items():
+            cluster_graph.add_edge(cluster1, cluster2, weight=weight)
+        
+        print(f"  构建聚类图: {len(cluster_graph.nodes())} 个聚类, {len(cluster_graph.edges())} 条连接")
+        
+        return cluster_graph
+    
+    def _run_cluster_louvain(self, cluster_graph: nx.Graph) -> Dict[str, str]:
+        """
+        对聚类图运行Louvain算法
+        
+        Args:
+            cluster_graph: 聚类间的图
+            
+        Returns:
+            聚类的分区结果 {cluster_id -> super_cluster_id}
+        """
+        if len(cluster_graph.nodes()) == 0:
+            return {}
+        
+        # 初始化分区
+        partition = {cluster: str(i) for i, cluster in enumerate(cluster_graph.nodes())}
+        
+        # 运行单轮优化
+        optimized_partition = self._phase1_optimize(cluster_graph, partition)
+        
+        print(f"  聚类级别Louvain: {len(cluster_graph.nodes())} -> {len(set(optimized_partition.values()))} 个超级聚类")
+        
+        return optimized_partition
+    
+    def _map_cluster_partition_to_states(self, state_partition: Dict[str, str], 
+                                       cluster_partition: Dict[str, str]) -> Dict[str, str]:
+        """
+        将聚类级别的分区映射回状态级别
+        
+        Args:
+            state_partition: 状态到聚类的映射 {state -> cluster}
+            cluster_partition: 聚类到超级聚类的映射 {cluster -> super_cluster}
+            
+        Returns:
+            状态到超级聚类的映射 {state -> super_cluster}
+        """
+        new_partition = {}
+        
+        for state, cluster in state_partition.items():
+            super_cluster = cluster_partition.get(cluster, cluster)
+            new_partition[state] = super_cluster
+        
+        return new_partition
     
     def _phase1_optimize(self, graph: nx.Graph, initial_partition: Dict[str, str]) -> Dict[str, str]:
         """
@@ -549,7 +786,10 @@ class UTGLouvainClustering:
         """
         state_str = state_data.get("state_str", "")
         
-        if state_str in self.final_partition:
+        # 检查是否为被过滤的孤立状态
+        if state_str in self.filtered_states:
+            cluster_id = "filtered_isolated"
+        elif state_str in self.final_partition:
             cluster_id = self.final_partition[state_str]
         else:
             cluster_id = "unknown_cluster"
@@ -572,8 +812,16 @@ class UTGLouvainClustering:
         start_state = event_data.get("start_state", "")
         stop_state = event_data.get("stop_state", "")
         
-        start_cluster = self.final_partition.get(start_state, "unknown_cluster")
-        stop_cluster = self.final_partition.get(stop_state, "unknown_cluster")
+        # 处理过滤状态
+        if start_state in self.filtered_states:
+            start_cluster = "filtered_isolated"
+        else:
+            start_cluster = self.final_partition.get(start_state, "unknown_cluster")
+        
+        if stop_state in self.filtered_states:
+            stop_cluster = "filtered_isolated"
+        else:
+            stop_cluster = self.final_partition.get(stop_state, "unknown_cluster")
         
         return start_cluster, stop_cluster
     
@@ -702,16 +950,41 @@ class UTGLouvainClustering:
         for community in self.final_partition.values():
             community_sizes[community] += 1
         
+        # 计算层次聚类信息
+        hierarchical_info = []
+        for level, partition in enumerate(self.hierarchical_levels):
+            level_communities = set(partition.values())
+            level_sizes = defaultdict(int)
+            for comm in partition.values():
+                level_sizes[comm] += 1
+            
+            hierarchical_info.append({
+                "level": level,
+                "num_communities": len(level_communities),
+                "largest_community": max(level_sizes.values()) if level_sizes else 0,
+                "smallest_community": min(level_sizes.values()) if level_sizes else 0,
+                "average_community_size": sum(level_sizes.values()) / len(level_sizes) if level_sizes else 0
+            })
+        
         statistics = {
             "total_states": len(self.states_data),
             "total_transitions": len(self.events_data),
             "num_communities": len(communities),
+            "filtered_isolated_states": len(self.filtered_states),
+            "connected_states": len(self.connected_states),
             "final_modularity": self.modularity_history[-1] if self.modularity_history else 0,
             "modularity_history": self.modularity_history,
             "community_sizes": dict(community_sizes),
             "largest_community_size": max(community_sizes.values()) if community_sizes else 0,
             "smallest_community_size": min(community_sizes.values()) if community_sizes else 0,
-            "average_community_size": sum(community_sizes.values()) / len(community_sizes) if community_sizes else 0
+            "average_community_size": sum(community_sizes.values()) / len(community_sizes) if community_sizes else 0,
+            "hierarchical_levels": len(self.hierarchical_levels),
+            "hierarchical_info": hierarchical_info,
+            "clustering_parameters": {
+                "max_clusters": self.max_clusters,
+                "min_cluster_size": self.min_cluster_size,
+                "resolution": self.resolution
+            }
         }
         
         return statistics
@@ -762,13 +1035,18 @@ class UTGLouvainClustering:
 
 def main():
     """
-    主函数：UTG Louvain聚类示例
+    主函数：UTG 层次Louvain聚类示例
     """
     # UTG数据文件夹路径
     utg_folder = r"c:\Projects\AndroidTaskAutomation\2_utg_clustering\utg\original_greedy_dfs_20251106_160351"
     
     # 创建聚类器
     clusterer = UTGLouvainClustering(utg_folder)
+    
+    # 配置层次聚类参数
+    clusterer.max_clusters = 8  # 最大聚类数阈值
+    clusterer.min_cluster_size = 3  # 最小聚类大小
+    clusterer.resolution = 1.2  # 提高分辨率，倾向于更大的聚类
     
     # 加载UTG数据
     clusterer.load_utg_data()
@@ -789,11 +1067,33 @@ def main():
     
     # 打印结果摘要
     communities = set(final_partition.values())
-    print(f"\n=== UTG Louvain聚类结果 ===")
-    print(f"总状态数: {len(clusterer.states_data)}")
+    print(f"\n=== UTG 层次Louvain聚类结果 ===")
+    print(f"连通状态数: {len(clusterer.states_data)}")
+    print(f"过滤孤立状态数: {len(clusterer.filtered_states)}")
     print(f"总转换数: {len(clusterer.events_data)}")
-    print(f"检测到的社区数: {len(communities)}")
+    print(f"层次聚类层数: {len(clusterer.hierarchical_levels)}")
+    print(f"最终聚类数: {len(communities)}")
     print(f"最终模块度: {clusterer.modularity_history[-1]:.4f}")
+    
+    # 显示每层的聚类数变化
+    if clusterer.hierarchical_levels:
+        print(f"\n层次聚类过程:")
+        for i, level_partition in enumerate(clusterer.hierarchical_levels):
+            level_communities = len(set(level_partition.values()))
+            print(f"  第{i}层: {level_communities} 个聚类")
+    
+    # 显示最终聚类大小分布
+    community_sizes = defaultdict(int)
+    for community in final_partition.values():
+        community_sizes[community] += 1
+    
+    sorted_clusters = sorted(community_sizes.items(), key=lambda x: x[1], reverse=True)
+    print(f"\n最终聚类大小分布（前10个）:")
+    for i, (cluster_id, size) in enumerate(sorted_clusters[:10]):
+        print(f"  聚类 {cluster_id}: {size} 个状态")
+    
+    if clusterer.filtered_states:
+        print(f"\n过滤的孤立状态将被标记为 'filtered_isolated' 聚类")
 
 
 if __name__ == "__main__":
