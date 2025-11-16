@@ -825,6 +825,53 @@ class UTGLouvainClustering:
         
         return start_cluster, stop_cluster
     
+    def _get_screenshot_path(self, state_file_path: Path) -> Optional[Path]:
+        """
+        获取对应的截图文件路径
+        
+        Args:
+            state_file_path: 状态文件路径
+            
+        Returns:
+            对应的截图文件路径，如果不存在则返回None
+        """
+        # 从 state_2025-11-06_160358.json 转换为 screen_2025-11-06_160358.png
+        state_filename = state_file_path.name
+        if state_filename.startswith("state_") and state_filename.endswith(".json"):
+            # 提取时间戳部分
+            timestamp = state_filename[6:-5]  # 移除 "state_" 前缀和 ".json" 后缀
+            screenshot_filename = f"screen_{timestamp}.png"
+            screenshot_path = state_file_path.parent / screenshot_filename
+            
+            if screenshot_path.exists():
+                return screenshot_path
+        
+        return None
+    
+    def _copy_screenshot_if_exists(self, original_screenshot_path: Path, output_states_dir: Path) -> Optional[str]:
+        """
+        复制截图文件到输出目录（如果存在）
+        
+        Args:
+            original_screenshot_path: 原始截图文件路径
+            output_states_dir: 输出states目录
+            
+        Returns:
+            复制后的截图文件相对路径，如果复制失败则返回None
+        """
+        if not original_screenshot_path or not original_screenshot_path.exists():
+            return None
+        
+        try:
+            import shutil
+            # 复制截图文件到输出目录
+            output_screenshot_path = output_states_dir / original_screenshot_path.name
+            shutil.copy2(original_screenshot_path, output_screenshot_path)
+            return original_screenshot_path.name  # 返回相对路径
+        except Exception as e:
+            print(f"警告: 复制截图文件失败 {original_screenshot_path}: {e}")
+            return None
+    
     def _process_states(self):
         """
         处理所有state文件并生成聚类结果
@@ -832,6 +879,7 @@ class UTGLouvainClustering:
         state_files = list(self.states_folder.glob("state_*.json"))
         processed_count = 0
         skipped_count = 0
+        screenshot_copied_count = 0
         
         print(f"开始处理 {len(state_files)} 个state文件...")
         
@@ -851,11 +899,27 @@ class UTGLouvainClustering:
             # 进行聚类
             cluster_id = self.state_clustering(state_data)
             
-            # 生成输出数据
-            output_data = {
-                "state_str": state_data.get("state_str", ""),
-                "state_cluster_id": cluster_id
-            }
+            # 处理截图映射
+            screenshot_path = self._get_screenshot_path(state_file)
+            screenshot_relative_path = None
+            
+            if screenshot_path:
+                screenshot_relative_path = self._copy_screenshot_if_exists(
+                    screenshot_path, self.output_folder / "states"
+                )
+                if screenshot_relative_path:
+                    screenshot_copied_count += 1
+            
+            # 生成输出数据 - 包含完整的原始数据和聚类信息
+            output_data = state_data.copy()  # 保留所有原始数据
+            output_data["state_cluster_id"] = cluster_id
+            
+            # 添加截图映射信息
+            if screenshot_relative_path:
+                output_data["screenshot_file"] = screenshot_relative_path
+                output_data["has_screenshot"] = True
+            else:
+                output_data["has_screenshot"] = False
             
             # 保存到输出文件
             output_file = self.output_folder / "states" / state_file.name
@@ -866,6 +930,7 @@ class UTGLouvainClustering:
         
         print(f"States处理完成: 成功处理 {processed_count} 个文件，跳过 {skipped_count} 个无效文件")
         print(f"建立了 {len(self.state_id_to_cluster)} 个state_id映射")
+        print(f"成功复制了 {screenshot_copied_count} 个截图文件")
     
     def _process_events(self):
         """
@@ -935,6 +1000,9 @@ class UTGLouvainClustering:
             with open(output_path / f"partition_level_{i}.json", 'w', encoding='utf-8') as f:
                 json.dump(partition, f, indent=2, ensure_ascii=False)
         
+        # 生成UTG JavaScript文件
+        self.utg_js_generator()
+        
         print(f"聚类结果已保存到: {output_path}")
     
     def _generate_clustering_statistics(self) -> Dict[str, Any]:
@@ -949,6 +1017,27 @@ class UTGLouvainClustering:
         
         for community in self.final_partition.values():
             community_sizes[community] += 1
+        
+        # 统计截图信息
+        total_screenshots = 0
+        states_with_screenshots = 0
+        
+        # 检查输出文件夹中的截图
+        output_states_folder = self.output_folder / "states"
+        if output_states_folder.exists():
+            screenshot_files = list(output_states_folder.glob("screen_*.png"))
+            total_screenshots = len(screenshot_files)
+            
+            # 检查有多少state文件包含截图映射
+            state_files = list(output_states_folder.glob("state_*.json"))
+            for state_file in state_files:
+                try:
+                    with open(state_file, 'r', encoding='utf-8') as f:
+                        state_data = json.load(f)
+                        if state_data.get("has_screenshot", False):
+                            states_with_screenshots += 1
+                except:
+                    pass
         
         # 计算层次聚类信息
         hierarchical_info = []
@@ -984,6 +1073,11 @@ class UTGLouvainClustering:
                 "max_clusters": self.max_clusters,
                 "min_cluster_size": self.min_cluster_size,
                 "resolution": self.resolution
+            },
+            "screenshot_mapping": {
+                "total_screenshots_copied": total_screenshots,
+                "states_with_screenshots": states_with_screenshots,
+                "screenshot_coverage_rate": states_with_screenshots / len(self.states_data) if len(self.states_data) > 0 else 0
             }
         }
         
@@ -1031,6 +1125,182 @@ class UTGLouvainClustering:
             
         except ImportError:
             print("警告: matplotlib未安装，无法生成可视化图")
+    
+    def utg_js_generator(self):
+        """
+        生成UTG的JavaScript文件，包含聚类信息
+        
+        生成格式：
+        - nodes: 包含id、image、cluster_id属性
+        - edges: 包含from、to、event_str属性
+        """
+        print("正在生成UTG JavaScript文件...")
+        
+        # 准备节点数据
+        nodes = []
+        for state_str, state_data in self.states_data.items():
+            # 获取聚类ID
+            cluster_id = self.final_partition.get(state_str, "unknown_cluster")
+            
+            # 获取截图文件名
+            image_filename = None
+            state_id = state_data.get("state_str", "")
+            
+            # 尝试从state文件名推断截图文件名
+            # 假设state文件格式为state_timestamp.json，截图为screen_timestamp.png
+            if hasattr(self, 'state_id_to_cluster'):
+                # 查找对应的截图文件
+                for state_file in self.states_folder.glob("state_*.json"):
+                    try:
+                        with open(state_file, 'r', encoding='utf-8') as f:
+                            file_state_data = json.load(f)
+                            if file_state_data.get("state_str") == state_str:
+                                # 从state文件名推断截图文件名
+                                state_filename = state_file.name
+                                if state_filename.startswith("state_") and state_filename.endswith(".json"):
+                                    timestamp = state_filename[6:-5]  # 移除state_和.json
+                                    image_filename = f"screen_{timestamp}.png"
+                                break
+                    except:
+                        continue
+            
+            node = {
+                "id": state_str,
+                "image": image_filename or f"screen_{len(nodes)}.png",  # 默认图片名
+                "cluster_id": cluster_id
+            }
+            nodes.append(node)
+        
+        # 准备边数据
+        edges = []
+        processed_edges = set()  # 用于去重
+        
+        for event_data in self.events_data:
+            start_state = event_data.get("start_state", "")
+            stop_state = event_data.get("stop_state", "")
+            event_str = event_data.get("event_str", "")
+            
+            # 确保起始和结束状态都存在
+            if start_state in self.states_data and stop_state in self.states_data:
+                # 创建边的唯一标识符（避免重复边）
+                edge_key = (start_state, stop_state, event_str)
+                if edge_key not in processed_edges:
+                    edge = {
+                        "from": start_state,
+                        "to": stop_state,
+                        "event_str": event_str
+                    }
+                    edges.append(edge)
+                    processed_edges.add(edge_key)
+        
+        # 生成JavaScript内容
+        js_content = self._generate_js_content(nodes, edges)
+        
+        # 保存到输出文件夹
+        output_js_file = self.output_folder / "utg_clustered.js"
+        with open(output_js_file, 'w', encoding='utf-8') as f:
+            f.write(js_content)
+        
+        print(f"UTG JavaScript文件已生成: {output_js_file}")
+        print(f"包含 {len(nodes)} 个节点和 {len(edges)} 条边")
+        
+        return output_js_file
+    
+    def _generate_js_content(self, nodes: List[Dict], edges: List[Dict]) -> str:
+        """
+        生成JavaScript文件内容
+        
+        Args:
+            nodes: 节点列表
+            edges: 边列表
+            
+        Returns:
+            JavaScript文件内容字符串
+        """
+        # 生成节点的JavaScript数组
+        nodes_js = "var nodes = [\n"
+        for i, node in enumerate(nodes):
+            comma = "," if i < len(nodes) - 1 else ""
+            nodes_js += f'  {json.dumps(node, ensure_ascii=False)}{comma}\n'
+        nodes_js += "];\n\n"
+        
+        # 生成边的JavaScript数组
+        edges_js = "var edges = [\n"
+        for i, edge in enumerate(edges):
+            comma = "," if i < len(edges) - 1 else ""
+            edges_js += f'  {json.dumps(edge, ensure_ascii=False)}{comma}\n'
+        edges_js += "];\n\n"
+        
+        # 生成聚类信息
+        clusters_info = self._generate_cluster_info()
+        clusters_js = f"var clusters = {json.dumps(clusters_info, indent=2, ensure_ascii=False)};\n\n"
+        
+        # 组合完整内容
+        js_content = f"""// UTG Clustered JavaScript File
+// Generated by UTG Louvain Clustering
+// Total nodes: {len(nodes)}
+// Total edges: {len(edges)}
+// Total clusters: {len(set(node['cluster_id'] for node in nodes))}
+
+{nodes_js}{edges_js}{clusters_js}// Export for use in visualization
+if (typeof module !== 'undefined' && module.exports) {{
+    module.exports = {{ nodes: nodes, edges: edges, clusters: clusters }};
+}}
+"""
+        
+        return js_content
+    
+    def _generate_cluster_info(self) -> Dict[str, Any]:
+        """
+        生成聚类信息
+        
+        Returns:
+            聚类信息字典
+        """
+        cluster_info = {}
+        cluster_counts = defaultdict(int)
+        
+        # 统计每个聚类的大小
+        for state_str in self.states_data:
+            cluster_id = self.final_partition.get(state_str, "unknown_cluster")
+            cluster_counts[cluster_id] += 1
+        
+        # 为每个聚类生成信息
+        for cluster_id, count in cluster_counts.items():
+            cluster_info[cluster_id] = {
+                "id": cluster_id,
+                "size": count,
+                "color": self._generate_cluster_color(cluster_id),
+                "label": f"Cluster {cluster_id} ({count} states)"
+            }
+        
+        return cluster_info
+    
+    def _generate_cluster_color(self, cluster_id: str) -> str:
+        """
+        为聚类生成颜色
+        
+        Args:
+            cluster_id: 聚类ID
+            
+        Returns:
+            HEX颜色代码
+        """
+        # 使用聚类ID的哈希值生成一致的颜色
+        import hashlib
+        hash_value = int(hashlib.md5(cluster_id.encode()).hexdigest()[:6], 16)
+        
+        # 转换为RGB
+        r = (hash_value >> 16) & 255
+        g = (hash_value >> 8) & 255
+        b = hash_value & 255
+        
+        # 确保颜色不会太暗
+        r = max(r, 100)
+        g = max(g, 100)
+        b = max(b, 100)
+        
+        return f"#{r:02x}{g:02x}{b:02x}"
 
 
 def main():
