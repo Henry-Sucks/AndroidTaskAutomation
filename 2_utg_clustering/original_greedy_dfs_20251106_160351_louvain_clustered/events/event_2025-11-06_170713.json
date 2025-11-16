@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=e781ed368a5bec7d58dd1f5de425d503, view=84566ec33bd442a35e8686eb3316d0b2(DocumentActivity/Button-SEARCH / R))",
+  "start_state": "e781ed368a5bec7d58dd1f5de425d503",
+  "stop_state": "a657fdf1717916fd33ce0b43b5ce03ef",
+  "start_cluster": "88",
+  "stop_cluster": "64"
+}

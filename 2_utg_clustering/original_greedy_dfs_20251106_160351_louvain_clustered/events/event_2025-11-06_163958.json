@@ -1,0 +1,7 @@
+{
+  "event_str": "LongTouchEvent(state=10cd23ccc37f3019d5a67a48e2a42f3b, view=ef13225d224d1e0f471174611931f521(MainActivity/CheckedTextView-- (1)))",
+  "start_state": "10cd23ccc37f3019d5a67a48e2a42f3b",
+  "stop_state": "10cd23ccc37f3019d5a67a48e2a42f3b",
+  "start_cluster": "69",
+  "stop_cluster": "69"
+}

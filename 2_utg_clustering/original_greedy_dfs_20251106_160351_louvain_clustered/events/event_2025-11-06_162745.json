@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=85bc5b4810ab072acefd53601567f8c5, view=9fee6ffd5aa3ceb6a5318550895e46ea(MainActivity/TextView-Create Fol))",
+  "start_state": "85bc5b4810ab072acefd53601567f8c5",
+  "stop_state": "85bc5b4810ab072acefd53601567f8c5",
+  "start_cluster": "91",
+  "stop_cluster": "91"
+}

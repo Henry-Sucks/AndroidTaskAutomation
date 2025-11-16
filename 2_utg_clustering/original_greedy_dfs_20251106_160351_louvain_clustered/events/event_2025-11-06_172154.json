@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=4d3f179bce810a72e30be5671240f7de, view=6ef5f4c30758fbfa714e4df5b41a6165(DocumentActivity/CheckBox-Favourite))",
+  "start_state": "4d3f179bce810a72e30be5671240f7de",
+  "stop_state": "ea479874658cf31a06573fd5238e4c16",
+  "start_cluster": "107",
+  "stop_cluster": "107"
+}

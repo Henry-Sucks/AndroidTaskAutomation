@@ -1,0 +1,7 @@
+{
+  "event_str": "SetTextEvent(state=48447e72deffd11077bf1093977681df, view=a5ff061f61575cc50273b48a4f398cfa(DocumentActivity/EditText-Search), text=Hello World)",
+  "start_state": "48447e72deffd11077bf1093977681df",
+  "stop_state": "5a0e47e4f793e38371766af53b99c966",
+  "start_cluster": "75",
+  "stop_cluster": "75"
+}

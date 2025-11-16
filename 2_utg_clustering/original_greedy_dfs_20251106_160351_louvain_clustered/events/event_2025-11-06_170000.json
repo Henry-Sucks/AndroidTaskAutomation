@@ -1,0 +1,7 @@
+{
+  "event_str": "LongTouchEvent(state=8379d809eb0921af0423821fd0de1cde, view=923e4dd3a333aa380f17b3ec829373e8(SettingsActivity/ViewGroup-))",
+  "start_state": "8379d809eb0921af0423821fd0de1cde",
+  "stop_state": "8379d809eb0921af0423821fd0de1cde",
+  "start_cluster": "135",
+  "stop_cluster": "135"
+}

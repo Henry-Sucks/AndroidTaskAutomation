@@ -1,0 +1,1072 @@
+{
+  "tag": "2025-11-06_162227",
+  "state_str": "8f958f267e2d264d637b9e1efaaba8af",
+  "state_str_content_free": "4e8acdc71aba03d67424a56547bd448d",
+  "foreground_activity": "net.gsantner.markor/.activity.MainActivity",
+  "activity_stack": [
+    "net.gsantner.markor/.activity.MainActivity"
+  ],
+  "background_services": [
+    "com.google.android.gms/.nearby.presence.service.LifeCycleService",
+    "com.google.android.gms/.play.integrity.api.service.IntegrityApiPersistentService",
+    "com.google.android.networkstack.tethering/com.android.networkstack.tethering.TetheringService",
+    "com.google.android.permissioncontroller/com.android.permissioncontroller.permission.service.PermissionControllerServiceImpl",
+    "com.google.android.gms/.nearby.sharing.ReceiveSurfaceService",
+    "com.android.systemui/.keyguard.KeyguardService",
+    "com.google.android.webview/org.chromium.android_webview.services.MetricsBridgeService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.app.AiAiAugmentedAutofillService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.captions.SystemCaptionsManagerService",
+    "com.google.android.gms/.personalsafety.service.SndDetectionService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.textclassifier.service.QAiaiTextClassifierService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.common.superpacks.impl.AiAiSuperpacksService",
+    "com.google.android.gms/.auth.setup.devicesignals.LockScreenService",
+    "com.google.android.gms/.gcm.GcmService",
+    "com.google.android.gms/.chimera.PersistentApiServiceNoInstantApps",
+    "com.google.android.gms/.clearcut.debug.ClearcutDebugDumpService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.app.AiAiSmartspaceService",
+    "com.google.android.gms/.chimera.PersistentApiService",
+    "com.android.systemui/.wallpapers.ImageWallpaper",
+    "com.google.android.gms/.location.geocode.GeocodeService",
+    "com.android.phone/com.android.internal.telephony.CellularNetworkService",
+    "com.google.android.gms/.magictether.service.TetherService",
+    "com.google.android.gms/.chimera.PersistentBoundBrokerService",
+    "com.google.android.as/androidx.room.MultiInstanceInvalidationService",
+    "com.google.android.ext.services/android.ext.services.storage.CacheQuotaServiceImpl",
+    "com.google.android.gms/.nearby.sharing.SendSurfaceService",
+    "io.github.ylimit.droidbotapp/.DroidBotIME",
+    "com.google.android.gms/com.google.android.location.fused.FusedLocationService",
+    "com.google.android.gms/.gcm.nts.SchedulerService",
+    "com.google.android.ext.services/android.ext.services.autofill.InlineSuggestionRenderServiceImpl",
+    "com.google.android.providers.media.module/com.android.providers.media.fuse.ExternalStorageServiceImpl",
+    "com.android.phone/com.android.internal.telephony.data.CellularDataService",
+    "io.github.ylimit.droidbotapp/io.github.privacystreams.accessibility.PSAccessibilityService",
+    "com.google.android.gms/.thunderbird.EmergencyPersistentService",
+    "com.google.android.apps.nexuslauncher/com.android.launcher3.notification.NotificationListener",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.common.notification.service.AiAiNotificationListenerService",
+    "com.android.systemui/.SystemUIService",
+    "android/.hardware.location.GeofenceHardwareService",
+    "com.android.se/.SecureElementService",
+    "com.google.android.gms/.chimera.GmsIntentOperationService",
+    "com.google.android.gms/.chimera.PersistentDirectBootAwareApiService",
+    "com.google.android.gms/.geotimezone.GeoTimeZoneService",
+    "com.google.android.gms/.location.persistent.LocationPersistentService",
+    "com.google.android.gms/.nearby.discovery.service.DiscoveryService",
+    "com.google.android.gms/com.google.android.location.internal.PendingIntentCallbackService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.app.AiAiPredictionService",
+    "com.google.android.bluetooth/com.android.bluetooth.btservice.AdapterService",
+    "com.google.android.gms/.fido.authenticator.service.AuthenticatorService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.app.AiAiContentCaptureService",
+    "com.google.android.gms/com.google.android.location.internal.server.GoogleLocationService",
+    "com.google.android.gms/com.google.android.contextmanager.service.ContextManagerService",
+    "com.android.systemui/.dump.SystemUIAuxiliaryDumpService",
+    "com.google.android.gms/com.google.android.location.network.NetworkLocationService",
+    "com.android.stk/.StkAppService",
+    "com.google.android.gms/com.google.android.location.internal.GoogleLocationManagerService",
+    "com.android.server.telecom/.components.TelecomService",
+    "com.google.android.networkstack/com.android.server.NetworkStackService",
+    "com.android.systemui/com.google.android.systemui.power.batteryevent.domain.BatteryEventService",
+    "com.google.android.googlequicksearchbox/com.google.android.voiceinteraction.GsaVoiceInteractionService",
+    "com.android.emulator.multidisplay/.MultiDisplayService",
+    "com.google.android.gms/.crisisalerts.init.CrisisAlertsPersistentService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.common.notification.service.AiAiNotificationAssistantService",
+    "com.android.ons/.OpportunisticNetworkService",
+    "com.google.android.gms/.common.stats.GmsCoreStatsService",
+    "com.google.android.gms/com.google.android.location.internal.server.HardwareArProviderService",
+    "com.google.android.gms/.dtdi.lifecycle.LifecycleService",
+    "net.gsantner.markor/org.chromium.content.app.SandboxedProcessService0",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.app.AiAiContentSuggestionsService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.captions.downloadservice.CaptionsDownloadService",
+    "com.google.android.gms/.personalsafety.service.PersonalSafetyService",
+    "com.android.phone/.TelephonyDebugService",
+    "com.google.android.apps.nexuslauncher/com.android.quickstep.TouchInteractionService",
+    "com.google.android.cellbroadcastservice/com.android.cellbroadcastservice.DefaultCellBroadcastService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.app.AiAiSearchUiService",
+    "com.google.android.gms/.chimera.GmsIntentOperationService"
+  ],
+  "width": 1280,
+  "height": 2856,
+  "views": [
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 1,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [
+        1
+      ],
+      "focused": false,
+      "bounds": [
+        [
+          0,
+          156
+        ],
+        [
+          1280,
+          2712
+        ]
+      ],
+      "resource_id": null,
+      "checked": false,
+      "text": null,
+      "class": "android.widget.FrameLayout",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": -1,
+      "temp_id": 0,
+      "size": "1280*2556",
+      "signature": "[class]android.widget.FrameLayout[resource_id]None[text]None[enabled,,]",
+      "view_str": "693ec90155202e37cc41f2801cbc85ed",
+      "content_free_signature": "[class]android.widget.FrameLayout[resource_id]None"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 1,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [
+        2
+      ],
+      "focused": false,
+      "bounds": [
+        [
+          48,
+          204
+        ],
+        [
+          1232,
+          2664
+        ]
+      ],
+      "resource_id": null,
+      "checked": false,
+      "text": null,
+      "class": "android.widget.FrameLayout",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 0,
+      "temp_id": 1,
+      "size": "1184*2460",
+      "signature": "[class]android.widget.FrameLayout[resource_id]None[text]None[enabled,,]",
+      "view_str": "75d18c374ab8a73e05f98d011dffd801",
+      "content_free_signature": "[class]android.widget.FrameLayout[resource_id]None"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 1,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [
+        3
+      ],
+      "focused": false,
+      "bounds": [
+        [
+          48,
+          204
+        ],
+        [
+          1232,
+          2664
+        ]
+      ],
+      "resource_id": "android:id/content",
+      "checked": false,
+      "text": null,
+      "class": "android.widget.FrameLayout",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 1,
+      "temp_id": 2,
+      "size": "1184*2460",
+      "signature": "[class]android.widget.FrameLayout[resource_id]android:id/content[text]None[enabled,,]",
+      "view_str": "d0d84f72fe4197260e0091e941e056a7",
+      "content_free_signature": "[class]android.widget.FrameLayout[resource_id]android:id/content"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 6,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [
+        4,
+        7,
+        18,
+        19,
+        20,
+        21
+      ],
+      "focused": false,
+      "bounds": [
+        [
+          48,
+          204
+        ],
+        [
+          1232,
+          2664
+        ]
+      ],
+      "resource_id": null,
+      "checked": false,
+      "text": null,
+      "class": "android.view.ViewGroup",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 2,
+      "temp_id": 3,
+      "size": "1184*2460",
+      "signature": "[class]android.view.ViewGroup[resource_id]None[text]None[enabled,,]",
+      "view_str": "8fac256f7065df7107eb479aae974b4d",
+      "content_free_signature": "[class]android.view.ViewGroup[resource_id]None"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 2,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [
+        5,
+        6
+      ],
+      "focused": false,
+      "bounds": [
+        [
+          48,
+          204
+        ],
+        [
+          1232,
+          372
+        ]
+      ],
+      "resource_id": "net.gsantner.markor:id/ui__filesystem_dialog__title_bar",
+      "checked": false,
+      "text": null,
+      "class": "android.view.ViewGroup",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 3,
+      "temp_id": 4,
+      "size": "1184*168",
+      "signature": "[class]android.view.ViewGroup[resource_id]net.gsantner.markor:id/ui__filesystem_dialog__title_bar[text]None[enabled,,]",
+      "view_str": "b4533bd02713721407afa45b37503375",
+      "content_free_signature": "[class]android.view.ViewGroup[resource_id]net.gsantner.markor:id/ui__filesystem_dialog__title_bar"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 0,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          96,
+          216
+        ],
+        [
+          607,
+          297
+        ]
+      ],
+      "resource_id": null,
+      "checked": false,
+      "text": "Import from device",
+      "class": "android.widget.TextView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 4,
+      "temp_id": 5,
+      "size": "511*81",
+      "signature": "[class]android.widget.TextView[resource_id]None[text]Import from device[enabled,,]",
+      "view_str": "cbd02a376388c34d5cb66bac099467c1",
+      "content_free_signature": "[class]android.widget.TextView[resource_id]None",
+      "allowed_actions": [
+        "touch"
+      ],
+      "special_attrs": [],
+      "local_id": "0",
+      "desc": "<p bound_box=96,216,607,297>Import from device</p>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 0,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          96,
+          297
+        ],
+        [
+          1208,
+          360
+        ]
+      ],
+      "resource_id": null,
+      "checked": false,
+      "text": "/storage/emulated",
+      "class": "android.widget.TextView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 4,
+      "temp_id": 6,
+      "size": "1112*63",
+      "signature": "[class]android.widget.TextView[resource_id]None[text]/storage/emulated[enabled,,]",
+      "view_str": "62191f48f36cdf76d4d5d3086bd585e6",
+      "content_free_signature": "[class]android.widget.TextView[resource_id]None",
+      "allowed_actions": [
+        "touch"
+      ],
+      "special_attrs": [],
+      "local_id": "1",
+      "desc": "<p bound_box=96,297,1208,360>/storage/emulated</p>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 2,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": true,
+      "enabled": true,
+      "content_description": null,
+      "children": [
+        8,
+        13
+      ],
+      "focused": false,
+      "bounds": [
+        [
+          48,
+          384
+        ],
+        [
+          1232,
+          2523
+        ]
+      ],
+      "resource_id": "net.gsantner.markor:id/ui__filesystem_dialog__list",
+      "checked": false,
+      "text": null,
+      "class": "androidx.recyclerview.widget.RecyclerView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 3,
+      "temp_id": 7,
+      "size": "1184*2139",
+      "signature": "[class]androidx.recyclerview.widget.RecyclerView[resource_id]net.gsantner.markor:id/ui__filesystem_dialog__list[text]None[enabled,,]",
+      "view_str": "035ed40048dab88a9f0b43c8d2914895",
+      "content_free_signature": "[class]androidx.recyclerview.widget.RecyclerView[resource_id]net.gsantner.markor:id/ui__filesystem_dialog__list"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 2,
+      "editable": false,
+      "clickable": true,
+      "is_password": false,
+      "focusable": true,
+      "enabled": true,
+      "content_description": "Folder storage /storage",
+      "children": [
+        9,
+        10
+      ],
+      "focused": false,
+      "bounds": [
+        [
+          48,
+          384
+        ],
+        [
+          1232,
+          546
+        ]
+      ],
+      "resource_id": "net.gsantner.markor:id/opoc_filesystem_item__root",
+      "checked": false,
+      "text": null,
+      "class": "android.widget.LinearLayout",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": true,
+      "parent": 7,
+      "temp_id": 8,
+      "size": "1184*162",
+      "signature": "[class]android.widget.LinearLayout[resource_id]net.gsantner.markor:id/opoc_filesystem_item__root[text]None[enabled,,]",
+      "view_str": "02deab22249fd6b3c85d37b5b6289932",
+      "content_free_signature": "[class]android.widget.LinearLayout[resource_id]net.gsantner.markor:id/opoc_filesystem_item__root",
+      "allowed_actions": [
+        "touch",
+        "long_touch"
+      ],
+      "special_attrs": [],
+      "local_id": "2",
+      "desc": "<button text='Folder storage /storage' bound_box=48,384,1232,546></button>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 0,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          96,
+          411
+        ],
+        [
+          180,
+          495
+        ]
+      ],
+      "resource_id": "net.gsantner.markor:id/opoc_filesystem_item__image",
+      "checked": false,
+      "text": null,
+      "class": "android.widget.ImageView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": true,
+      "parent": 8,
+      "temp_id": 9,
+      "size": "84*84",
+      "signature": "[class]android.widget.ImageView[resource_id]net.gsantner.markor:id/opoc_filesystem_item__image[text]None[enabled,,]",
+      "view_str": "4c5af1075ee8765ab5844ab8c39861ae",
+      "content_free_signature": "[class]android.widget.ImageView[resource_id]net.gsantner.markor:id/opoc_filesystem_item__image"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 2,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [
+        11,
+        12
+      ],
+      "focused": false,
+      "bounds": [
+        [
+          228,
+          384
+        ],
+        [
+          1184,
+          522
+        ]
+      ],
+      "resource_id": null,
+      "checked": false,
+      "text": null,
+      "class": "android.widget.LinearLayout",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 8,
+      "temp_id": 10,
+      "size": "956*138",
+      "signature": "[class]android.widget.LinearLayout[resource_id]None[text]None[enabled,,]",
+      "view_str": "2ce15d828b6612c180fa6ba85714e653",
+      "content_free_signature": "[class]android.widget.LinearLayout[resource_id]None"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 0,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          228,
+          384
+        ],
+        [
+          260,
+          461
+        ]
+      ],
+      "resource_id": "net.gsantner.markor:id/opoc_filesystem_item__title",
+      "checked": false,
+      "text": "..",
+      "class": "android.widget.TextView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 10,
+      "temp_id": 11,
+      "size": "32*77",
+      "signature": "[class]android.widget.TextView[resource_id]net.gsantner.markor:id/opoc_filesystem_item__title[text]..[enabled,,]",
+      "view_str": "edc25d8813c58081d4f23de58e85263d",
+      "content_free_signature": "[class]android.widget.TextView[resource_id]net.gsantner.markor:id/opoc_filesystem_item__title",
+      "allowed_actions": [
+        "touch",
+        "long_touch"
+      ],
+      "special_attrs": [],
+      "local_id": "3",
+      "desc": "<button bound_box=228,384,260,461>..</button>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 0,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          228,
+          461
+        ],
+        [
+          398,
+          522
+        ]
+      ],
+      "resource_id": "net.gsantner.markor:id/opoc_filesystem_item__description",
+      "checked": false,
+      "text": "/storage",
+      "class": "android.widget.TextView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 10,
+      "temp_id": 12,
+      "size": "170*61",
+      "signature": "[class]android.widget.TextView[resource_id]net.gsantner.markor:id/opoc_filesystem_item__description[text]/storage[enabled,,]",
+      "view_str": "837c083f491e2e1a268f3fc68cdc5e0e",
+      "content_free_signature": "[class]android.widget.TextView[resource_id]net.gsantner.markor:id/opoc_filesystem_item__description",
+      "allowed_actions": [
+        "touch",
+        "long_touch"
+      ],
+      "special_attrs": [],
+      "local_id": "4",
+      "desc": "<button bound_box=228,461,398,522>/storage</button>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 2,
+      "editable": false,
+      "clickable": true,
+      "is_password": false,
+      "focusable": true,
+      "enabled": true,
+      "content_description": "Folder 0 11/6/2025, 8:22\u202fAM",
+      "children": [
+        14,
+        15
+      ],
+      "focused": false,
+      "bounds": [
+        [
+          48,
+          549
+        ],
+        [
+          1232,
+          711
+        ]
+      ],
+      "resource_id": "net.gsantner.markor:id/opoc_filesystem_item__root",
+      "checked": false,
+      "text": null,
+      "class": "android.widget.LinearLayout",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": true,
+      "parent": 7,
+      "temp_id": 13,
+      "size": "1184*162",
+      "signature": "[class]android.widget.LinearLayout[resource_id]net.gsantner.markor:id/opoc_filesystem_item__root[text]None[enabled,,]",
+      "view_str": "02deab22249fd6b3c85d37b5b6289932",
+      "content_free_signature": "[class]android.widget.LinearLayout[resource_id]net.gsantner.markor:id/opoc_filesystem_item__root",
+      "allowed_actions": [
+        "touch",
+        "long_touch"
+      ],
+      "special_attrs": [],
+      "local_id": "5",
+      "desc": "<button text='Folder 0 11/6/2025, 8:22\u202fAM' bound_box=48,549,1232,711></button>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 0,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          96,
+          576
+        ],
+        [
+          180,
+          660
+        ]
+      ],
+      "resource_id": "net.gsantner.markor:id/opoc_filesystem_item__image",
+      "checked": false,
+      "text": null,
+      "class": "android.widget.ImageView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": true,
+      "parent": 13,
+      "temp_id": 14,
+      "size": "84*84",
+      "signature": "[class]android.widget.ImageView[resource_id]net.gsantner.markor:id/opoc_filesystem_item__image[text]None[enabled,,]",
+      "view_str": "4c5af1075ee8765ab5844ab8c39861ae",
+      "content_free_signature": "[class]android.widget.ImageView[resource_id]net.gsantner.markor:id/opoc_filesystem_item__image"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 2,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [
+        16,
+        17
+      ],
+      "focused": false,
+      "bounds": [
+        [
+          228,
+          549
+        ],
+        [
+          1184,
+          687
+        ]
+      ],
+      "resource_id": null,
+      "checked": false,
+      "text": null,
+      "class": "android.widget.LinearLayout",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 13,
+      "temp_id": 15,
+      "size": "956*138",
+      "signature": "[class]android.widget.LinearLayout[resource_id]None[text]None[enabled,,]",
+      "view_str": "9d6e81cfde5ac1d4ccc0eb29bb2badac",
+      "content_free_signature": "[class]android.widget.LinearLayout[resource_id]None"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 0,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          228,
+          549
+        ],
+        [
+          260,
+          626
+        ]
+      ],
+      "resource_id": "net.gsantner.markor:id/opoc_filesystem_item__title",
+      "checked": false,
+      "text": "0",
+      "class": "android.widget.TextView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 15,
+      "temp_id": 16,
+      "size": "32*77",
+      "signature": "[class]android.widget.TextView[resource_id]net.gsantner.markor:id/opoc_filesystem_item__title[text]0[enabled,,]",
+      "view_str": "16e4e5bf1092f90c9e069ae59ea287cf",
+      "content_free_signature": "[class]android.widget.TextView[resource_id]net.gsantner.markor:id/opoc_filesystem_item__title",
+      "allowed_actions": [
+        "touch",
+        "long_touch"
+      ],
+      "special_attrs": [],
+      "local_id": "6",
+      "desc": "<button bound_box=228,549,260,626>0</button>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 0,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          228,
+          626
+        ],
+        [
+          626,
+          687
+        ]
+      ],
+      "resource_id": "net.gsantner.markor:id/opoc_filesystem_item__description",
+      "checked": false,
+      "text": "11/6/2025, 8:22\u202fAM",
+      "class": "android.widget.TextView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 15,
+      "temp_id": 17,
+      "size": "398*61",
+      "signature": "[class]android.widget.TextView[resource_id]net.gsantner.markor:id/opoc_filesystem_item__description[text]11/6/2025, 8:22\u202fAM[enabled,,]",
+      "view_str": "0f51e165913632f5180d40f080a87870",
+      "content_free_signature": "[class]android.widget.TextView[resource_id]net.gsantner.markor:id/opoc_filesystem_item__description",
+      "allowed_actions": [
+        "touch",
+        "long_touch"
+      ],
+      "special_attrs": [],
+      "local_id": "7",
+      "desc": "<button bound_box=228,626,626,687>11/6/2025, 8:22\u202fAM</button>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 0,
+      "editable": false,
+      "clickable": true,
+      "is_password": false,
+      "focusable": true,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          1082,
+          2028
+        ],
+        [
+          1202,
+          2148
+        ]
+      ],
+      "resource_id": "net.gsantner.markor:id/ui__filesystem_dialog__search_button",
+      "checked": false,
+      "text": null,
+      "class": "android.widget.ImageButton",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 3,
+      "temp_id": 18,
+      "size": "120*120",
+      "signature": "[class]android.widget.ImageButton[resource_id]net.gsantner.markor:id/ui__filesystem_dialog__search_button[text]None[enabled,,]",
+      "view_str": "a5ca277f42e10216b2d521eec7a9dce0",
+      "content_free_signature": "[class]android.widget.ImageButton[resource_id]net.gsantner.markor:id/ui__filesystem_dialog__search_button"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 0,
+      "editable": false,
+      "clickable": true,
+      "is_password": false,
+      "focusable": true,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          1082,
+          2193
+        ],
+        [
+          1202,
+          2313
+        ]
+      ],
+      "resource_id": "net.gsantner.markor:id/ui__filesystem_dialog__new_dir",
+      "checked": false,
+      "text": null,
+      "class": "android.widget.ImageButton",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 3,
+      "temp_id": 19,
+      "size": "120*120",
+      "signature": "[class]android.widget.ImageButton[resource_id]net.gsantner.markor:id/ui__filesystem_dialog__new_dir[text]None[enabled,,]",
+      "view_str": "c1cc53fab5ccdfa536ef9e82a0d80295",
+      "content_free_signature": "[class]android.widget.ImageButton[resource_id]net.gsantner.markor:id/ui__filesystem_dialog__new_dir"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 0,
+      "editable": false,
+      "clickable": true,
+      "is_password": false,
+      "focusable": true,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          1082,
+          2358
+        ],
+        [
+          1202,
+          2478
+        ]
+      ],
+      "resource_id": "net.gsantner.markor:id/ui__filesystem_dialog__home",
+      "checked": false,
+      "text": null,
+      "class": "android.widget.ImageButton",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 3,
+      "temp_id": 20,
+      "size": "120*120",
+      "signature": "[class]android.widget.ImageButton[resource_id]net.gsantner.markor:id/ui__filesystem_dialog__home[text]None[enabled,,]",
+      "view_str": "687b3a963939d8eae6b41cf70d8fd0fb",
+      "content_free_signature": "[class]android.widget.ImageButton[resource_id]net.gsantner.markor:id/ui__filesystem_dialog__home"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 2,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [
+        22,
+        23
+      ],
+      "focused": false,
+      "bounds": [
+        [
+          48,
+          2523
+        ],
+        [
+          1232,
+          2664
+        ]
+      ],
+      "resource_id": "net.gsantner.markor:id/ui__filesystem_dialog__buttons",
+      "checked": false,
+      "text": null,
+      "class": "android.widget.LinearLayout",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 3,
+      "temp_id": 21,
+      "size": "1184*141",
+      "signature": "[class]android.widget.LinearLayout[resource_id]net.gsantner.markor:id/ui__filesystem_dialog__buttons[text]None[enabled,,]",
+      "view_str": "681ea1556199f84d4721703bbf7b5c7c",
+      "content_free_signature": "[class]android.widget.LinearLayout[resource_id]net.gsantner.markor:id/ui__filesystem_dialog__buttons"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": false,
+      "checkable": false,
+      "child_count": 0,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          60,
+          2535
+        ],
+        [
+          1001,
+          2535
+        ]
+      ],
+      "resource_id": null,
+      "checked": false,
+      "text": null,
+      "class": "android.view.View",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 21,
+      "temp_id": 22,
+      "size": "941*0",
+      "signature": "[class]android.view.View[resource_id]None[text]None[enabled,,]",
+      "view_str": "531df08e4b571eb702fc2b9505e2c130",
+      "content_free_signature": "[class]android.view.View[resource_id]None"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 0,
+      "editable": false,
+      "clickable": true,
+      "is_password": false,
+      "focusable": true,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          1031,
+          2565
+        ],
+        [
+          1190,
+          2622
+        ]
+      ],
+      "resource_id": "net.gsantner.markor:id/ui__filesystem_dialog__button_cancel",
+      "checked": false,
+      "text": "CANCEL",
+      "class": "android.widget.TextView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 21,
+      "temp_id": 23,
+      "size": "159*57",
+      "signature": "[class]android.widget.TextView[resource_id]net.gsantner.markor:id/ui__filesystem_dialog__button_cancel[text]CANCEL[enabled,,]",
+      "view_str": "07b8c83477bfef13b28f265912b814da",
+      "content_free_signature": "[class]android.widget.TextView[resource_id]net.gsantner.markor:id/ui__filesystem_dialog__button_cancel",
+      "allowed_actions": [
+        "touch"
+      ],
+      "special_attrs": [],
+      "local_id": "8",
+      "desc": "<button bound_box=1031,2565,1190,2622>CANCEL</button>"
+    }
+  ]
+}

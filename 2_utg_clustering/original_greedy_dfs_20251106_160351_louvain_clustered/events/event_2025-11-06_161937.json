@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=147e72a746d4dfe3a0e83b997bf06356, view=e1cbc82f3f8ae2b3909aaaa30fb9cb1e(MainActivity/CheckBox-Regex sear))",
+  "start_state": "147e72a746d4dfe3a0e83b997bf06356",
+  "stop_state": "42e72e6c100f3c400675dfd196f867fb",
+  "start_cluster": "115",
+  "stop_cluster": "115"
+}

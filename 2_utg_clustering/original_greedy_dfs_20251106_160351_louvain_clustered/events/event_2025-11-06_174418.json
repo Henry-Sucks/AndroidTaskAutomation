@@ -1,0 +1,7 @@
+{
+  "event_str": "LongTouchEvent(state=525a1cfc9e97db9b8784c0516dbb9eaf, view=9239409480220a7728ad7d9923a89618(DocumentActivity/CheckedTextView-- (1)))",
+  "start_state": "525a1cfc9e97db9b8784c0516dbb9eaf",
+  "stop_state": "76d8c99e95f538df7261884044c33a60",
+  "start_cluster": "75",
+  "stop_cluster": "75"
+}

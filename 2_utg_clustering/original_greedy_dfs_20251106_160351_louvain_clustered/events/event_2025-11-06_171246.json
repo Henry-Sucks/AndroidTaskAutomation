@@ -1,0 +1,7 @@
+{
+  "event_str": "ScrollEvent(state=12d4acd11a2f02d6781a2d41326053c0, view=bbaa07e1c0be3ebd8bba4d3935dcfa29(MainActivity/Spinner-), direction=down)",
+  "start_state": "12d4acd11a2f02d6781a2d41326053c0",
+  "stop_state": "75f5ca9a3da5c63df0361d6fdc0815bd",
+  "start_cluster": "91",
+  "stop_cluster": "91"
+}

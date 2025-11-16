@@ -1,0 +1,7 @@
+{
+  "event_str": "LongTouchEvent(state=5c83d82a17a2f3c0d74ac909872c2816, view=6877c88308afaa92291fd3271b68c78c(DocumentActivity/EditText-Replace wi))",
+  "start_state": "5c83d82a17a2f3c0d74ac909872c2816",
+  "stop_state": "5c83d82a17a2f3c0d74ac909872c2816",
+  "start_cluster": "64",
+  "stop_cluster": "64"
+}

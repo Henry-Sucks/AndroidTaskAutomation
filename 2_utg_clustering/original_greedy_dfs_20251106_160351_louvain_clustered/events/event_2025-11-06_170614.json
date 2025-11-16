@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=f0dcee17d97e4ba9e7a10e9b6437f6fd, view=289df5a7bc2847b63fff72a2389428aa(MainActivity/Button-CANCEL))",
+  "start_state": "f0dcee17d97e4ba9e7a10e9b6437f6fd",
+  "stop_state": "5b57049117349b39efe70dfb42a8cc65",
+  "start_cluster": "91",
+  "stop_cluster": "91"
+}

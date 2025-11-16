@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=1811e184d43c6910813bff501cf97f24, view=2ba633a489dc8b27e8e2aaf07204d4f2(MainActivity/EditText-Hello Worl))",
+  "start_state": "1811e184d43c6910813bff501cf97f24",
+  "stop_state": "1811e184d43c6910813bff501cf97f24",
+  "start_cluster": "35",
+  "stop_cluster": "35"
+}

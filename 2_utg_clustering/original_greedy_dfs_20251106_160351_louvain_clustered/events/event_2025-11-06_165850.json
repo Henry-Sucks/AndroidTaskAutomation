@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=645aa04593da03b2c5d85d0c09bf75c3, view=961f7708b0ab1fd076575ea7c2b51d9b(ActionButtonSettingsActivity/TextView-Toggle don))",
+  "start_state": "645aa04593da03b2c5d85d0c09bf75c3",
+  "stop_state": "645aa04593da03b2c5d85d0c09bf75c3",
+  "start_cluster": "135",
+  "stop_cluster": "135"
+}

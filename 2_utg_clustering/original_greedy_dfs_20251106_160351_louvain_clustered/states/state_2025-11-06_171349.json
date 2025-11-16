@@ -1,0 +1,673 @@
+{
+  "tag": "2025-11-06_171349",
+  "state_str": "d875fed7597c4dfdb2b7c5a568776832",
+  "state_str_content_free": "80a5d093529b10172a7828c1c375d24b",
+  "foreground_activity": "net.gsantner.markor/.activity.MainActivity",
+  "activity_stack": [
+    "net.gsantner.markor/.activity.MainActivity",
+    "net.gsantner.markor/.activity.DocumentActivity",
+    "net.gsantner.markor/.activity.MainActivity",
+    "net.gsantner.markor/.activity.DocumentActivity",
+    "net.gsantner.markor/.activity.MainActivity"
+  ],
+  "background_services": [
+    "com.google.android.gms/.nearby.presence.service.LifeCycleService",
+    "com.google.android.gms/.play.integrity.api.service.IntegrityApiPersistentService",
+    "com.google.android.networkstack.tethering/com.android.networkstack.tethering.TetheringService",
+    "com.google.android.permissioncontroller/com.android.permissioncontroller.permission.service.PermissionControllerServiceImpl",
+    "com.google.android.adservices.api/com.android.adservices.measurement.MeasurementService",
+    "com.google.android.gms/.nearby.sharing.ReceiveSurfaceService",
+    "com.android.vending/com.google.android.finsky.setup.dse.impl.DseService",
+    "com.android.systemui/.keyguard.KeyguardService",
+    "com.google.android.webview/org.chromium.android_webview.services.MetricsBridgeService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.app.AiAiAugmentedAutofillService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.captions.SystemCaptionsManagerService",
+    "com.google.android.gms/.personalsafety.service.SndDetectionService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.textclassifier.service.QAiaiTextClassifierService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.common.superpacks.impl.AiAiSuperpacksService",
+    "com.google.android.gms/.auth.setup.devicesignals.LockScreenService",
+    "com.google.android.gms/.gcm.GcmService",
+    "com.google.android.gms/.chimera.PersistentApiServiceNoInstantApps",
+    "com.google.android.gms/.clearcut.debug.ClearcutDebugDumpService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.app.AiAiSmartspaceService",
+    "com.google.android.gms/.chimera.PersistentApiService",
+    "com.android.systemui/.wallpapers.ImageWallpaper",
+    "com.google.android.gms/.location.geocode.GeocodeService",
+    "com.android.phone/com.android.internal.telephony.CellularNetworkService",
+    "com.google.android.gms/.magictether.service.TetherService",
+    "com.google.android.gms/.chimera.PersistentBoundBrokerService",
+    "com.google.android.gms/.chimera.GmsApiService",
+    "com.google.android.as/androidx.room.MultiInstanceInvalidationService",
+    "com.google.android.ext.services/android.ext.services.storage.CacheQuotaServiceImpl",
+    "com.google.android.gms/.nearby.sharing.SendSurfaceService",
+    "io.github.ylimit.droidbotapp/.DroidBotIME",
+    "com.google.android.gms/com.google.android.location.fused.FusedLocationService",
+    "com.google.android.gms/.gcm.nts.SchedulerService",
+    "com.google.android.ext.services/android.ext.services.autofill.InlineSuggestionRenderServiceImpl",
+    "com.google.android.providers.media.module/com.android.providers.media.fuse.ExternalStorageServiceImpl",
+    "com.android.phone/com.android.internal.telephony.data.CellularDataService",
+    "io.github.ylimit.droidbotapp/io.github.privacystreams.accessibility.PSAccessibilityService",
+    "com.google.android.gms/.thunderbird.EmergencyPersistentService",
+    "com.google.android.apps.nexuslauncher/com.android.launcher3.notification.NotificationListener",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.common.notification.service.AiAiNotificationListenerService",
+    "com.android.systemui/.SystemUIService",
+    "android/.hardware.location.GeofenceHardwareService",
+    "com.android.se/.SecureElementService",
+    "com.google.android.gms/.chimera.GmsIntentOperationService",
+    "com.google.android.gms/.chimera.PersistentDirectBootAwareApiService",
+    "com.google.android.gms/.geotimezone.GeoTimeZoneService",
+    "com.google.android.gms/.location.persistent.LocationPersistentService",
+    "com.google.android.gms/.nearby.discovery.service.DiscoveryService",
+    "com.google.android.gms/com.google.android.location.internal.PendingIntentCallbackService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.app.AiAiPredictionService",
+    "com.google.android.bluetooth/com.android.bluetooth.btservice.AdapterService",
+    "com.google.android.gms/.fido.authenticator.service.AuthenticatorService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.app.AiAiContentCaptureService",
+    "com.google.android.apps.photos/com.google.android.libraries.social.async.BackgroundTaskJobService",
+    "com.google.android.gms/com.google.android.location.internal.server.GoogleLocationService",
+    "com.google.android.gms/com.google.android.contextmanager.service.ContextManagerService",
+    "com.android.systemui/.dump.SystemUIAuxiliaryDumpService",
+    "com.google.android.gms/com.google.android.location.network.NetworkLocationService",
+    "com.android.stk/.StkAppService",
+    "com.google.android.gms/com.google.android.location.internal.GoogleLocationManagerService",
+    "com.android.server.telecom/.components.TelecomService",
+    "com.google.android.networkstack/com.android.server.NetworkStackService",
+    "com.android.systemui/com.google.android.systemui.power.batteryevent.domain.BatteryEventService",
+    "com.google.android.googlequicksearchbox/com.google.android.voiceinteraction.GsaVoiceInteractionService",
+    "com.android.emulator.multidisplay/.MultiDisplayService",
+    "com.google.android.gms/.crisisalerts.init.CrisisAlertsPersistentService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.common.notification.service.AiAiNotificationAssistantService",
+    "com.android.ons/.OpportunisticNetworkService",
+    "com.google.android.gms/.common.stats.GmsCoreStatsService",
+    "com.google.android.gms/com.google.android.location.internal.server.HardwareArProviderService",
+    "com.google.android.gms/.dtdi.lifecycle.LifecycleService",
+    "net.gsantner.markor/org.chromium.content.app.SandboxedProcessService0",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.app.AiAiContentSuggestionsService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.captions.downloadservice.CaptionsDownloadService",
+    "com.google.android.gms/.personalsafety.service.PersonalSafetyService",
+    "com.android.phone/.TelephonyDebugService",
+    "com.google.android.apps.nexuslauncher/com.android.quickstep.TouchInteractionService",
+    "com.google.android.cellbroadcastservice/com.android.cellbroadcastservice.DefaultCellBroadcastService",
+    "com.google.android.as/com.google.android.apps.miphone.aiai.app.AiAiSearchUiService",
+    "com.google.android.gms/.chimera.GmsIntentOperationService"
+  ],
+  "width": 1280,
+  "height": 2856,
+  "views": [
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 1,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [
+        1
+      ],
+      "focused": false,
+      "bounds": [
+        [
+          78,
+          1444
+        ],
+        [
+          1058,
+          2784
+        ]
+      ],
+      "resource_id": null,
+      "checked": false,
+      "text": null,
+      "class": "android.widget.FrameLayout",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": -1,
+      "temp_id": 0,
+      "size": "980*1340",
+      "signature": "[class]android.widget.FrameLayout[resource_id]None[text]None[enabled,,]",
+      "view_str": "693ec90155202e37cc41f2801cbc85ed",
+      "content_free_signature": "[class]android.widget.FrameLayout[resource_id]None"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 1,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [
+        2
+      ],
+      "focused": false,
+      "bounds": [
+        [
+          78,
+          1444
+        ],
+        [
+          1058,
+          2784
+        ]
+      ],
+      "resource_id": null,
+      "checked": false,
+      "text": null,
+      "class": "android.widget.FrameLayout",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 0,
+      "temp_id": 1,
+      "size": "980*1340",
+      "signature": "[class]android.widget.FrameLayout[resource_id]None[text]None[enabled,,]",
+      "view_str": "09d48498609128df557045c8ef38731e",
+      "content_free_signature": "[class]android.widget.FrameLayout[resource_id]None"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": false,
+      "child_count": 10,
+      "editable": false,
+      "clickable": false,
+      "is_password": false,
+      "focusable": true,
+      "enabled": true,
+      "content_description": null,
+      "children": [
+        3,
+        4,
+        5,
+        6,
+        7,
+        8,
+        9,
+        10,
+        11,
+        12
+      ],
+      "focused": false,
+      "bounds": [
+        [
+          78,
+          1444
+        ],
+        [
+          1058,
+          2784
+        ]
+      ],
+      "resource_id": null,
+      "checked": false,
+      "text": null,
+      "class": "android.widget.ListView",
+      "scrollable": true,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 1,
+      "temp_id": 2,
+      "size": "980*1340",
+      "signature": "[class]android.widget.ListView[resource_id]None[text]None[enabled,,]",
+      "view_str": "73572d138846af3c7b669347a718a0c1",
+      "content_free_signature": "[class]android.widget.ListView[resource_id]None",
+      "allowed_actions": [
+        "scroll up",
+        "scroll down"
+      ],
+      "special_attrs": [],
+      "local_id": "0",
+      "desc": "<scrollbar bound_box=78,1444,1058,2784></scrollbar>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": true,
+      "child_count": 0,
+      "editable": false,
+      "clickable": true,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          78,
+          1444
+        ],
+        [
+          1058,
+          1588
+        ]
+      ],
+      "resource_id": "android:id/text1",
+      "checked": true,
+      "text": "asciidoc-reference.adoc",
+      "class": "android.widget.CheckedTextView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 2,
+      "temp_id": 3,
+      "size": "980*144",
+      "signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1[text]asciidoc-reference.adoc[enabled,checked,]",
+      "view_str": "2327cf61c74f069a10cae01925178519",
+      "content_free_signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1",
+      "allowed_actions": [
+        "select",
+        "unselect"
+      ],
+      "special_attrs": [
+        "selected"
+      ],
+      "local_id": "1",
+      "desc": "<checkbox bound_box=78,1444,1058,1588>asciidoc-reference.adoc</checkbox>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": true,
+      "child_count": 0,
+      "editable": false,
+      "clickable": true,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          78,
+          1588
+        ],
+        [
+          1058,
+          1732
+        ]
+      ],
+      "resource_id": "android:id/text1",
+      "checked": false,
+      "text": "cooking-recipe.md",
+      "class": "android.widget.CheckedTextView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 2,
+      "temp_id": 4,
+      "size": "980*144",
+      "signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1[text]cooking-recipe.md[enabled,,]",
+      "view_str": "03f496ee30f16a1e1a64556c7cc4f355",
+      "content_free_signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1",
+      "allowed_actions": [
+        "select",
+        "unselect"
+      ],
+      "special_attrs": [],
+      "local_id": "2",
+      "desc": "<checkbox bound_box=78,1588,1058,1732>cooking-recipe.md</checkbox>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": true,
+      "child_count": 0,
+      "editable": false,
+      "clickable": true,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          78,
+          1732
+        ],
+        [
+          1058,
+          1876
+        ]
+      ],
+      "resource_id": "android:id/text1",
+      "checked": false,
+      "text": "hugo-post-front-matter.md",
+      "class": "android.widget.CheckedTextView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 2,
+      "temp_id": 5,
+      "size": "980*144",
+      "signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1[text]hugo-post-front-matter.md[enabled,,]",
+      "view_str": "b1bee9b3b2e53d0e2ca4281aaa06001a",
+      "content_free_signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1",
+      "allowed_actions": [
+        "select",
+        "unselect"
+      ],
+      "special_attrs": [],
+      "local_id": "3",
+      "desc": "<checkbox bound_box=78,1732,1058,1876>hugo-post-front-matter.md</checkbox>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": true,
+      "child_count": 0,
+      "editable": false,
+      "clickable": true,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          78,
+          1876
+        ],
+        [
+          1058,
+          2020
+        ]
+      ],
+      "resource_id": "android:id/text1",
+      "checked": false,
+      "text": "jekyll-post.adoc",
+      "class": "android.widget.CheckedTextView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 2,
+      "temp_id": 6,
+      "size": "980*144",
+      "signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1[text]jekyll-post.adoc[enabled,,]",
+      "view_str": "96d2d5bb18b3143ea97b558c4d2f973d",
+      "content_free_signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1",
+      "allowed_actions": [
+        "select",
+        "unselect"
+      ],
+      "special_attrs": [],
+      "local_id": "4",
+      "desc": "<checkbox bound_box=78,1876,1058,2020>jekyll-post.adoc</checkbox>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": true,
+      "child_count": 0,
+      "editable": false,
+      "clickable": true,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          78,
+          2020
+        ],
+        [
+          1058,
+          2164
+        ]
+      ],
+      "resource_id": "android:id/text1",
+      "checked": false,
+      "text": "jekyll-post.md",
+      "class": "android.widget.CheckedTextView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 2,
+      "temp_id": 7,
+      "size": "980*144",
+      "signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1[text]jekyll-post.md[enabled,,]",
+      "view_str": "82b8b4de83c4cb5bdcf11b8a72c7ac95",
+      "content_free_signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1",
+      "allowed_actions": [
+        "select",
+        "unselect"
+      ],
+      "special_attrs": [],
+      "local_id": "5",
+      "desc": "<checkbox bound_box=78,2020,1058,2164>jekyll-post.md</checkbox>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": true,
+      "child_count": 0,
+      "editable": false,
+      "clickable": true,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          78,
+          2164
+        ],
+        [
+          1058,
+          2308
+        ]
+      ],
+      "resource_id": "android:id/text1",
+      "checked": false,
+      "text": "markor-markdown-reference.md",
+      "class": "android.widget.CheckedTextView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 2,
+      "temp_id": 8,
+      "size": "980*144",
+      "signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1[text]markor-markdown-reference.md[enabled,,]",
+      "view_str": "75072142c381d1ee11a1309c380ab979",
+      "content_free_signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1",
+      "allowed_actions": [
+        "select",
+        "unselect"
+      ],
+      "special_attrs": [],
+      "local_id": "6",
+      "desc": "<checkbox bound_box=78,2164,1058,2308>markor-markdown-reference.md</checkbox>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": true,
+      "child_count": 0,
+      "editable": false,
+      "clickable": true,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          78,
+          2308
+        ],
+        [
+          1058,
+          2452
+        ]
+      ],
+      "resource_id": "android:id/text1",
+      "checked": false,
+      "text": "orgmode-reference.org",
+      "class": "android.widget.CheckedTextView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 2,
+      "temp_id": 9,
+      "size": "980*144",
+      "signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1[text]orgmode-reference.org[enabled,,]",
+      "view_str": "28c4b31d70e24af5704cb844fbf5df76",
+      "content_free_signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1",
+      "allowed_actions": [
+        "select",
+        "unselect"
+      ],
+      "special_attrs": [],
+      "local_id": "7",
+      "desc": "<checkbox bound_box=78,2308,1058,2452>orgmode-reference.org</checkbox>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": true,
+      "child_count": 0,
+      "editable": false,
+      "clickable": true,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          78,
+          2452
+        ],
+        [
+          1058,
+          2596
+        ]
+      ],
+      "resource_id": "android:id/text1",
+      "checked": false,
+      "text": "presentation-beamer.md",
+      "class": "android.widget.CheckedTextView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 2,
+      "temp_id": 10,
+      "size": "980*144",
+      "signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1[text]presentation-beamer.md[enabled,,]",
+      "view_str": "362fc7b66f001940629c2edd9375b221",
+      "content_free_signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1",
+      "allowed_actions": [
+        "select",
+        "unselect"
+      ],
+      "special_attrs": [],
+      "local_id": "8",
+      "desc": "<checkbox bound_box=78,2452,1058,2596>presentation-beamer.md</checkbox>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": true,
+      "child_count": 0,
+      "editable": false,
+      "clickable": true,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          78,
+          2596
+        ],
+        [
+          1058,
+          2740
+        ]
+      ],
+      "resource_id": "android:id/text1",
+      "checked": false,
+      "text": "sample.csv",
+      "class": "android.widget.CheckedTextView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 2,
+      "temp_id": 11,
+      "size": "980*144",
+      "signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1[text]sample.csv[enabled,,]",
+      "view_str": "7a865104f7eb0b8248b8ef926c836c54",
+      "content_free_signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1",
+      "allowed_actions": [
+        "select",
+        "unselect"
+      ],
+      "special_attrs": [],
+      "local_id": "9",
+      "desc": "<checkbox bound_box=78,2596,1058,2740>sample.csv</checkbox>"
+    },
+    {
+      "package": "net.gsantner.markor",
+      "visible": true,
+      "checkable": true,
+      "child_count": 0,
+      "editable": false,
+      "clickable": true,
+      "is_password": false,
+      "focusable": false,
+      "enabled": true,
+      "content_description": null,
+      "children": [],
+      "focused": false,
+      "bounds": [
+        [
+          78,
+          2740
+        ],
+        [
+          1058,
+          2784
+        ]
+      ],
+      "resource_id": "android:id/text1",
+      "checked": false,
+      "text": "todo.example.txt",
+      "class": "android.widget.CheckedTextView",
+      "scrollable": false,
+      "selected": false,
+      "long_clickable": false,
+      "parent": 2,
+      "temp_id": 12,
+      "size": "980*44",
+      "signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1[text]todo.example.txt[enabled,,]",
+      "view_str": "79882309a57a029abcc5a2ede675e3cc",
+      "content_free_signature": "[class]android.widget.CheckedTextView[resource_id]android:id/text1",
+      "allowed_actions": [
+        "select",
+        "unselect"
+      ],
+      "special_attrs": [],
+      "local_id": "10",
+      "desc": "<checkbox bound_box=78,2740,1058,2784>todo.example.txt</checkbox>"
+    }
+  ]
+}

@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=a5b8769baf4d00e9a0d06753b828c429, view=2061044e3eba8c189723ed00b7068fb9(SettingsActivity/EditText-+music +vi))",
+  "start_state": "a5b8769baf4d00e9a0d06753b828c429",
+  "stop_state": "a5b8769baf4d00e9a0d06753b828c429",
+  "start_cluster": "135",
+  "stop_cluster": "135"
+}

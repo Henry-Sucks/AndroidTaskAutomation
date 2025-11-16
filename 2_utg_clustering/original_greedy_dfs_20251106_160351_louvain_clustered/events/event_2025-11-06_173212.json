@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=fdf01f87d58fc11883997312bad429c5, view=316af28c2cc228135515d1cebf76643b(DocumentActivity/Button-SAVE))",
+  "start_state": "fdf01f87d58fc11883997312bad429c5",
+  "stop_state": "63ed53256568ae4c2775d786397bb17c",
+  "start_cluster": "75",
+  "stop_cluster": "75"
+}

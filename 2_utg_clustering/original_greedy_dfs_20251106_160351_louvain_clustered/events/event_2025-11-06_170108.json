@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=a5b8769baf4d00e9a0d06753b828c429, view=0979b5bf8a1493f2d334917f2b21151e(SettingsActivity/Button-OK))",
+  "start_state": "a5b8769baf4d00e9a0d06753b828c429",
+  "stop_state": "c8825e991df97ac79d47886a25d3ca0c",
+  "start_cluster": "135",
+  "stop_cluster": "135"
+}

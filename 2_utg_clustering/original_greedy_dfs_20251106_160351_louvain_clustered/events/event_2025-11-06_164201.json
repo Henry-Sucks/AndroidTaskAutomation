@@ -1,0 +1,7 @@
+{
+  "event_str": "LongTouchEvent(state=cfc62503866dfb76ecebbba64951a446, view=0d52b3aec1b0ab139c41132743c8133d(MainActivity/EditText-Hello Worl))",
+  "start_state": "cfc62503866dfb76ecebbba64951a446",
+  "stop_state": "cfc62503866dfb76ecebbba64951a446",
+  "start_cluster": "69",
+  "stop_cluster": "69"
+}

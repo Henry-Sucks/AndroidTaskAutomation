@@ -1,0 +1,7 @@
+{
+  "event_str": "IntentEvent(intent='am force-stop net.gsantner.markor')",
+  "start_state": "cfc62503866dfb76ecebbba64951a446",
+  "stop_state": "ecbf4cb50f641c8c6a46de1dc0cbb808",
+  "start_cluster": "69",
+  "stop_cluster": "69"
+}

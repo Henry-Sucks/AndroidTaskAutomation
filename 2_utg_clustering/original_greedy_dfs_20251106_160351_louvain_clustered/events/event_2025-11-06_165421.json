@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=42e72e6c100f3c400675dfd196f867fb, view=1b1375a77ffcc4624b03787b4688ed85(MainActivity/TextView-Recursive ))",
+  "start_state": "42e72e6c100f3c400675dfd196f867fb",
+  "stop_state": "42e72e6c100f3c400675dfd196f867fb",
+  "start_cluster": "115",
+  "stop_cluster": "115"
+}

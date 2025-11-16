@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=e53f272e371264d42cd5b894d7e06dd9, view=51721d069fb010ae352220e6f2565bed(MainActivity/CheckedTextView-Folder loc))",
+  "start_state": "e53f272e371264d42cd5b894d7e06dd9",
+  "stop_state": "b9774808aa3c1b503b61ffdb41bb63e3",
+  "start_cluster": "55",
+  "stop_cluster": "55"
+}

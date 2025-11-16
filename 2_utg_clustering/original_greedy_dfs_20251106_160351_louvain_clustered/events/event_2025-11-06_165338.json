@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=1811e184d43c6910813bff501cf97f24, view=2076bc18e35e812e5ab6073ca992c769(MainActivity/CheckBox-Search in ))",
+  "start_state": "1811e184d43c6910813bff501cf97f24",
+  "stop_state": "23f18a62b0650279082a416930a8ea4c",
+  "start_cluster": "35",
+  "stop_cluster": "35"
+}

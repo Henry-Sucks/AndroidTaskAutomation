@@ -1,0 +1,7 @@
+{
+  "event_str": "ScrollEvent(state=479511c477a3134cb3cee9fdbb751819, view=03ea1d6f9b39d108eae84eea2f5f1e31(MainActivity/HorizontalScrollView-), direction=left)",
+  "start_state": "479511c477a3134cb3cee9fdbb751819",
+  "stop_state": "90ad4e5c3d2675d30c9139e2b9a7c14c",
+  "start_cluster": "46",
+  "stop_cluster": "46"
+}

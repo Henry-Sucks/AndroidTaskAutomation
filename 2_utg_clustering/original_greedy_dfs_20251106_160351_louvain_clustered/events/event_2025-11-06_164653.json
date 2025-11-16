@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=90ad4e5c3d2675d30c9139e2b9a7c14c, view=bbec9025393ab29a1272801d00207da3(CaptureActivity/ImageView-))",
+  "start_state": "90ad4e5c3d2675d30c9139e2b9a7c14c",
+  "stop_state": "2081937a0c41e83d5fcba5986bb0fe87",
+  "start_cluster": "46",
+  "stop_cluster": "unknown_cluster"
+}

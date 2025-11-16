@@ -1,0 +1,7 @@
+{
+  "event_str": "LongTouchEvent(state=5dd2c64f0e1c48f9d4fc18fc348b9a25, view=97166136a09977695a78e1a0367f33a8(DocumentActivity/ViewGroup-))",
+  "start_state": "5dd2c64f0e1c48f9d4fc18fc348b9a25",
+  "stop_state": "5dd2c64f0e1c48f9d4fc18fc348b9a25",
+  "start_cluster": "88",
+  "stop_cluster": "88"
+}

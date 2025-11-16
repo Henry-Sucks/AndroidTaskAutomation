@@ -1,0 +1,7 @@
+{
+  "event_str": "ScrollEvent(state=479511c477a3134cb3cee9fdbb751819, view=9cdad958a694a5bfb796420e077d70eb(MainActivity/RecyclerView-), direction=right)",
+  "start_state": "479511c477a3134cb3cee9fdbb751819",
+  "stop_state": "479511c477a3134cb3cee9fdbb751819",
+  "start_cluster": "46",
+  "stop_cluster": "46"
+}

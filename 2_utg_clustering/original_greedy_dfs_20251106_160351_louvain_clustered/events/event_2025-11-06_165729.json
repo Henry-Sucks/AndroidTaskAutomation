@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=c8825e991df97ac79d47886a25d3ca0c, view=5bae38a211a92073415f3449bb52b855(SettingsActivity/TextView-todo.txt))",
+  "start_state": "c8825e991df97ac79d47886a25d3ca0c",
+  "stop_state": "c8825e991df97ac79d47886a25d3ca0c",
+  "start_cluster": "135",
+  "stop_cluster": "135"
+}

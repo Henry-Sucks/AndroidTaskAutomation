@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=e092f1900ccc1fd7e980affff4b5755d, view=a5ff061f61575cc50273b48a4f398cfa(DocumentActivity/EditText-Search))",
+  "start_state": "e092f1900ccc1fd7e980affff4b5755d",
+  "stop_state": "e092f1900ccc1fd7e980affff4b5755d",
+  "start_cluster": "10",
+  "stop_cluster": "10"
+}

@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=dfe6979ef7b09e57e7128eb7d87da9bd, view=75c8e06ff433866c2439dc9335540e5e(SettingsActivity/TextView-ActionButt))",
+  "start_state": "dfe6979ef7b09e57e7128eb7d87da9bd",
+  "stop_state": "dfe6979ef7b09e57e7128eb7d87da9bd",
+  "start_cluster": "135",
+  "stop_cluster": "135"
+}

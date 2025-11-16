@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=d5bf7b729fe6d49a1f3d8227e2221b39, view=69b11bc8b38926bfad4d724e89096960(MainActivity/Button-))",
+  "start_state": "d5bf7b729fe6d49a1f3d8227e2221b39",
+  "stop_state": "e4a723f9fb7e95d661c27b3afbbc6ca3",
+  "start_cluster": "91",
+  "stop_cluster": "91"
+}

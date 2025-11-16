@@ -1,0 +1,7 @@
+{
+  "event_str": "TouchEvent(state=5c83d82a17a2f3c0d74ac909872c2816, view=4678315e35da1b87ba4e370dd89f397d(DocumentActivity/TextView-Matches: 0))",
+  "start_state": "5c83d82a17a2f3c0d74ac909872c2816",
+  "stop_state": "5c83d82a17a2f3c0d74ac909872c2816",
+  "start_cluster": "64",
+  "stop_cluster": "64"
+}
