@@ -1,0 +1,8 @@
+{
+  "tag": "e0076",
+  "event_id": "aa9d4c0cb76f-->aa9d4c0cb76f",
+  "step": 76,
+  "from": "aa9d4c0cb76f",
+  "to": "aa9d4c0cb76f",
+  "raw_action": "g0a3[10,75][8]@MODEL_SCROLL_RIGHT_LEFTclass=androidx.viewpager.widget.ViewPager;resource-id=net.gsantner.markor:id/view_pager;enabled=true;scrollable=true;[P=6][T=0][][S=1.000000][RN=1][0,0,1080,2148][]"
+}

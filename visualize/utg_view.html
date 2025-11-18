@@ -1,0 +1,137 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8" />
+    <title>UTG Viewer</title>
+
+    <!-- vis-network CDN -->
+    <script src="https://unpkg.com/vis-network/standalone/umd/vis-network.min.js"></script>
+
+    <style>
+        body {
+            margin: 0;
+            padding: 0;
+            overflow: hidden;
+            display: flex;
+            height: 100vh;
+            font-family: sans-serif;
+        }
+        #graph {
+            flex: 3;
+            border-right: 1px solid #ccc;
+        }
+        #details {
+            flex: 1;
+            padding: 10px;
+        }
+        #details pre {
+            white-space: pre-wrap;
+            word-break: break-word;
+            font-size: 14px;
+        }
+    </style>
+</head>
+
+<body>
+    <div id="graph"></div>
+    <div id="details">
+        <h3>Details</h3>
+        <pre id="detail-content">Click a node or edge.</pre>
+    </div>
+
+    <script src="utg.js"></script>
+    <script>
+        // Convert nodes for vis-network
+        const visNodes = new vis.DataSet(
+    nodes.map(n => ({
+        id: n.id,
+        label: `${n.step}\n${n.activity.split('.').pop()}`,
+        
+        // shape: "circularImage", 
+        // image: `states/${n.image}`,    // 使用截图作为缩略图
+        // brokenImage: null,  // 当图片不存在时不会报错
+        // size: 30,           // 节点大小（可调）
+        // font: { size: 14, vadjust: 20 },  // 文本位置下移一点，让图像更好看
+        shape: "image",
+        image: `states/${n.image}`,
+        shapeProperties: {
+          useImageSize: false   // 不使用图片原始尺寸
+        },
+        size: 30,               // 影响节点渲染尺寸（经验值调试）
+        font: { size: 12, vadjust: -30 },
+        scaling: { min: 20, max: 120 } // 控制在缩放时的显示范围
+
+
+    }))
+);
+
+        // group edges by (from,to)
+        const edgeGroups = {};
+        edges.forEach(e => {
+            const key = `${e.from}->${e.to}`;
+            if (!edgeGroups[key]) edgeGroups[key] = [];
+            edgeGroups[key].push(e);
+        });
+
+        // build vis edges with offset
+        const visEdges = new vis.DataSet(
+            edges.map((e, idx) => {
+                const key = `${e.from}->${e.to}`;
+                const group = edgeGroups[key];
+                const indexInGroup = group.indexOf(e);  // 0,1,2,...
+
+                // 给每条 edge 一个不同的曲率
+                const curvature = 0.2 * (indexInGroup - (group.length - 1) / 2);
+
+                return {
+                    id: e.tag,              // 使用 tag 做唯一 id
+                    from: e.from,
+                    to: e.to,
+                    arrows: "to",
+                    label: e.tag,           // 显示 tag 文本
+                    font: { align: "middle" },
+                    smooth: {
+                        enabled: true,
+                        type: "curvedCW",
+                        roundness: Math.abs(curvature)  // 根据索引变化
+                    }
+                };
+            })
+        );
+
+        // Create network
+        const container = document.getElementById("graph");
+        const data = { nodes: visNodes, edges: visEdges };
+        const options = {
+            physics: {
+                enabled: true,
+                barnesHut: {
+                    gravitationalConstant: -9000,
+                    springLength: 130,
+                }
+            },
+            nodes: { font: { size: 14 } },
+            edges: { font: { size: 12 }, smooth: false }
+        };
+
+        const network = new vis.Network(container, data, options);
+
+        // --- Interaction ---
+        const detailBox = document.getElementById("detail-content");
+
+        network.on("click", function(params) {
+            if (params.nodes.length > 0) {
+                const id = params.nodes[0];
+                const n = nodes.find(x => x.id === id);
+                detailBox.textContent = JSON.stringify(n, null, 2);
+            } else if (params.edges.length > 0) {
+                const id = params.edges[0];
+                const e = edges.find(x => x.id === id);
+                detailBox.textContent = JSON.stringify(e, null, 2);
+            } else {
+                detailBox.textContent = "Click a node or edge.";
+            }
+        });
+    </script>
+</body>
+</html>

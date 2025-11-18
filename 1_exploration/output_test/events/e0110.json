@@ -1,0 +1,8 @@
+{
+  "tag": "e0110",
+  "event_id": "ee8dc65b7068-->f441effa616e",
+  "step": 110,
+  "from": "ee8dc65b7068",
+  "to": "f441effa616e",
+  "raw_action": "g0a8[1,109][11]@MODEL_LONG_CLICKclass=android.widget.TextView;resource-id=net.gsantner.markor:id/description;enabled=true;clickable=true;long-clickable=true;[P=6][T=0][][S=1.000000][RN=2][425,1350,1080,1900][Manage y]"
+}

@@ -12,6 +12,39 @@ function draw() {
   // Initialize with clustered view
   currentView = 'clustered';
 
+  // Create virtual center nodes for each cluster
+  var clusterCenters = [];
+  var clusterConnections = [];
+  var allClusterIds = [...new Set(nodes.map(node => node.cluster_id))];
+  
+  allClusterIds.forEach(clusterId => {
+    var centerId = 'center_' + clusterId;
+    clusterCenters.push({
+      id: centerId,
+      label: '',
+      shape: 'dot',
+      size: 1,
+      color: {
+        background: clusterColors[clusterId] || '#2B7CE9',
+        border: clusterColors[clusterId] || '#2B7CE9'
+      },
+      physics: true,
+      hidden: true  // 虚拟节点不可见
+    });
+    
+    // Connect all nodes in this cluster to the center
+    nodes.filter(node => node.cluster_id === clusterId).forEach(node => {
+      clusterConnections.push({
+        from: node.id,
+        to: centerId,
+        length: 50,  // 短连接长度
+        color: { opacity: 0 },  // 不可见连接
+        physics: true,
+        smooth: false
+      });
+    });
+  });
+
   var options = {
     autoResize: true,
     height: '100%',
@@ -48,14 +81,21 @@ function draw() {
       font: {
         size: 10,
         color: '#000'
+      },
+      smooth: {
+        type: 'curvedCW',
+        roundness: 0.1
       }
     },
-
-    layout: {
-      improvedLayout: true,
-      hierarchical: {           // 混合层级布局
-        enabled: false,         // 不完全强制层级
-        direction: "LR"
+    physics: {
+      enabled: true,
+      stabilization: { iterations: 200 },
+      barnesHut: {
+        gravitationalConstant: -15000,  // 增强节点间排斥力
+        centralGravity: 0.05,           // 轻微中心重力
+        springLength: 200,              // 默认边长度
+        springConstant: 0.0003,         // 弱化普通边的弹簧力
+        damping: 0.95                   // 增强阻尼
       }
     },
     interaction: {
@@ -79,7 +119,13 @@ function draw() {
     };
   });
 
-  network = new vis.Network(utg_div, { nodes: clusteredNodes, edges: edges }, options);
+  // Combine all nodes (real + virtual centers)
+  var allNodes = [...clusteredNodes, ...clusterCenters];
+  
+  // Combine all edges (original + cluster connections)
+  var allEdges = [...edges, ...clusterConnections];
+
+  network = new vis.Network(utg_div, { nodes: allNodes, edges: allEdges }, options);
   
   // Update details panel
   utg_details.innerHTML = getClusteredUTGInfo();
@@ -127,6 +173,7 @@ function showOriginalUTG() {
       },
       borderWidth: 2
     }));
+    // Use only original edges, no cluster connections
     network.setData({ nodes: updatedNodes, edges: edges });
   }
   document.getElementById('utg_details').innerHTML = getOriginalUTGInfo();
@@ -135,7 +182,39 @@ function showOriginalUTG() {
 function showClusteredUTG() {
   currentView = 'clustered';
   if (network) {
-    // Apply cluster colors to node borders while keeping screenshots
+    // Recreate cluster centers and connections
+    var clusterCenters = [];
+    var clusterConnections = [];
+    var allClusterIds = [...new Set(nodes.map(node => node.cluster_id))];
+    
+    allClusterIds.forEach(clusterId => {
+      var centerId = 'center_' + clusterId;
+      clusterCenters.push({
+        id: centerId,
+        label: '',
+        shape: 'dot',
+        size: 1,
+        color: {
+          background: clusterColors[clusterId] || '#2B7CE9',
+          border: clusterColors[clusterId] || '#2B7CE9'
+        },
+        physics: true,
+        hidden: true
+      });
+      
+      nodes.filter(node => node.cluster_id === clusterId).forEach(node => {
+        clusterConnections.push({
+          from: node.id,
+          to: centerId,
+          length: 50,
+          color: { opacity: 0 },
+          physics: true,
+          smooth: false
+        });
+      });
+    });
+    
+    // Apply cluster colors to node borders
     var clusteredNodes = nodes.map(node => {
       var clusterColor = clusterColors[node.cluster_id] || '#2B7CE9';
       return {
@@ -149,7 +228,11 @@ function showClusteredUTG() {
         borderWidth: 4
       };
     });
-    network.setData({ nodes: clusteredNodes, edges: edges });
+    
+    var allNodes = [...clusteredNodes, ...clusterCenters];
+    var allEdges = [...edges, ...clusterConnections];
+    
+    network.setData({ nodes: allNodes, edges: allEdges });
   }
   document.getElementById('utg_details').innerHTML = getClusteredUTGInfo();
 }
@@ -346,6 +429,21 @@ function filterByCluster(clusterId) {
   var clusterNodes = nodes.filter(node => node.cluster_id === clusterId);
   var clusterNodeIds = clusterNodes.map(node => node.id);
   
+  // Create virtual center for the filtered cluster
+  var centerId = 'center_' + clusterId;
+  var clusterCenter = {
+    id: centerId,
+    label: '',
+    shape: 'dot',
+    size: 1,
+    color: {
+      background: clusterColors[clusterId] || '#2B7CE9',
+      border: clusterColors[clusterId] || '#2B7CE9'
+    },
+    physics: true,
+    hidden: true
+  };
+  
   // Apply cluster colors to filtered nodes
   var coloredClusterNodes = clusterNodes.map(node => {
     var clusterColor = clusterColors[node.cluster_id] || '#2B7CE9';
@@ -361,12 +459,26 @@ function filterByCluster(clusterId) {
     };
   });
   
+  // Create cluster connections for filtered nodes
+  var clusterConnections = clusterNodes.map(node => ({
+    from: node.id,
+    to: centerId,
+    length: 50,
+    color: { opacity: 0 },
+    physics: true,
+    smooth: false
+  }));
+  
   // Filter edges to show only those within or connected to the cluster
   var clusterEdges = edges.filter(edge => 
     clusterNodeIds.includes(edge.from) || clusterNodeIds.includes(edge.to)
   );
+  
+  // Combine all nodes and edges
+  var allNodes = [...coloredClusterNodes, clusterCenter];
+  var allEdges = [...clusterEdges, ...clusterConnections];
 
-  network.setData({ nodes: coloredClusterNodes, edges: clusterEdges });
+  network.setData({ nodes: allNodes, edges: allEdges });
   network.fit();
   
   document.getElementById('utg_details').innerHTML = getClusterDetails(clusterId);
@@ -404,6 +516,38 @@ function getClusterDetails(clusterId) {
 function showAllClusters() {
   selectedCluster = null;
   
+  // Recreate all cluster centers and connections
+  var clusterCenters = [];
+  var clusterConnections = [];
+  var allClusterIds = [...new Set(nodes.map(node => node.cluster_id))];
+  
+  allClusterIds.forEach(clusterId => {
+    var centerId = 'center_' + clusterId;
+    clusterCenters.push({
+      id: centerId,
+      label: '',
+      shape: 'dot',
+      size: 1,
+      color: {
+        background: clusterColors[clusterId] || '#2B7CE9',
+        border: clusterColors[clusterId] || '#2B7CE9'
+      },
+      physics: true,
+      hidden: true
+    });
+    
+    nodes.filter(node => node.cluster_id === clusterId).forEach(node => {
+      clusterConnections.push({
+        from: node.id,
+        to: centerId,
+        length: 50,
+        color: { opacity: 0 },
+        physics: true,
+        smooth: false
+      });
+    });
+  });
+  
   // Apply cluster colors to all nodes
   var clusteredNodes = nodes.map(node => {
     var clusterColor = clusterColors[node.cluster_id] || '#2B7CE9';
@@ -419,7 +563,10 @@ function showAllClusters() {
     };
   });
   
-  network.setData({ nodes: clusteredNodes, edges: edges });
+  var allNodes = [...clusteredNodes, ...clusterCenters];
+  var allEdges = [...edges, ...clusterConnections];
+  
+  network.setData({ nodes: allNodes, edges: allEdges });
   network.fit();
   document.getElementById('utg_details').innerHTML = getClusteredUTGInfo();
 }
@@ -429,6 +576,37 @@ function showLargeClusters() {
     id => clusteringStats.community_sizes[id] > 20
   );
   var largeClusterNodes = nodes.filter(node => largeClusterIds.includes(node.cluster_id));
+  
+  // Create virtual centers for large clusters
+  var clusterCenters = [];
+  var clusterConnections = [];
+  
+  largeClusterIds.forEach(clusterId => {
+    var centerId = 'center_' + clusterId;
+    clusterCenters.push({
+      id: centerId,
+      label: '',
+      shape: 'dot',
+      size: 1,
+      color: {
+        background: clusterColors[clusterId] || '#2B7CE9',
+        border: clusterColors[clusterId] || '#2B7CE9'
+      },
+      physics: true,
+      hidden: true
+    });
+    
+    nodes.filter(node => node.cluster_id === clusterId && largeClusterIds.includes(node.cluster_id)).forEach(node => {
+      clusterConnections.push({
+        from: node.id,
+        to: centerId,
+        length: 50,
+        color: { opacity: 0 },
+        physics: true,
+        smooth: false
+      });
+    });
+  });
   
   // Apply cluster colors to large cluster nodes
   var coloredLargeNodes = largeClusterNodes.map(node => {
@@ -450,7 +628,10 @@ function showLargeClusters() {
     largeClusterNodeIds.includes(edge.from) && largeClusterNodeIds.includes(edge.to)
   );
   
-  network.setData({ nodes: coloredLargeNodes, edges: largeClusterEdges });
+  var allNodes = [...coloredLargeNodes, ...clusterCenters];
+  var allEdges = [...largeClusterEdges, ...clusterConnections];
+  
+  network.setData({ nodes: allNodes, edges: allEdges });
   network.fit();
 }
 
@@ -459,6 +640,37 @@ function showSmallClusters() {
     id => clusteringStats.community_sizes[id] < 5
   );
   var smallClusterNodes = nodes.filter(node => smallClusterIds.includes(node.cluster_id));
+  
+  // Create virtual centers for small clusters
+  var clusterCenters = [];
+  var clusterConnections = [];
+  
+  smallClusterIds.forEach(clusterId => {
+    var centerId = 'center_' + clusterId;
+    clusterCenters.push({
+      id: centerId,
+      label: '',
+      shape: 'dot',
+      size: 1,
+      color: {
+        background: clusterColors[clusterId] || '#2B7CE9',
+        border: clusterColors[clusterId] || '#2B7CE9'
+      },
+      physics: true,
+      hidden: true
+    });
+    
+    nodes.filter(node => node.cluster_id === clusterId && smallClusterIds.includes(node.cluster_id)).forEach(node => {
+      clusterConnections.push({
+        from: node.id,
+        to: centerId,
+        length: 50,
+        color: { opacity: 0 },
+        physics: true,
+        smooth: false
+      });
+    });
+  });
   
   // Apply cluster colors to small cluster nodes
   var coloredSmallNodes = smallClusterNodes.map(node => {
@@ -480,7 +692,10 @@ function showSmallClusters() {
     smallClusterNodeIds.includes(edge.from) && smallClusterNodeIds.includes(edge.to)
   );
   
-  network.setData({ nodes: coloredSmallNodes, edges: smallClusterEdges });
+  var allNodes = [...coloredSmallNodes, ...clusterCenters];
+  var allEdges = [...smallClusterEdges, ...clusterConnections];
+  
+  network.setData({ nodes: allNodes, edges: allEdges });
   network.fit();
 }
 

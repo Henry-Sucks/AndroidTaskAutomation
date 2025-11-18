@@ -1,0 +1,8 @@
+{
+  "tag": "e0019",
+  "event_id": "2b4bebd52c4e-->ee8dc65b7068",
+  "step": 19,
+  "from": "2b4bebd52c4e",
+  "to": "ee8dc65b7068",
+  "raw_action": "g0a4[2,18][2]@MODEL_CLICKclass=android.widget.ImageButton;resource-id=net.gsantner.markor:id/next;enabled=true;clickable=true;[P=22][T=0][][S=1.000000][RN=1][915,1986,1047,2118][#3d87c8a7]"
+}

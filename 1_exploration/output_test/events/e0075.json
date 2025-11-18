@@ -1,0 +1,8 @@
+{
+  "tag": "e0075",
+  "event_id": "ee8dc65b7068-->aa9d4c0cb76f",
+  "step": 75,
+  "from": "ee8dc65b7068",
+  "to": "aa9d4c0cb76f",
+  "raw_action": "g0a2[8,74][8]@MODEL_SCROLL_LEFT_RIGHTclass=androidx.viewpager.widget.ViewPager;resource-id=net.gsantner.markor:id/view_pager;enabled=true;scrollable=true;[P=14][T=0][][S=1.000000][RN=1][0,0,1080,2148][]"
+}

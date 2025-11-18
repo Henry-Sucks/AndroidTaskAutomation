@@ -162,18 +162,32 @@ def write_utg_js(states: List[Dict], events: List[Dict], output_path: Path) -> N
     """
     utg_js_path = output_path / 'utg.js'
     
+    # Create unique nodes by state_id, keeping only the first occurrence
+    unique_states = {}
+    for state in states:
+        state_id = state["state_id"]
+        if state_id not in unique_states:
+            unique_states[state_id] = {
+                "state_id": state_id,
+                "step": state["step"],
+                "activity": state["activity"],
+                "image": state["screenshot_path"],
+                "xml": state["xml_path"]
+            }
+    
+    unique_states_list = list(unique_states.values())
+    
     with open(utg_js_path, 'w', encoding='utf-8') as f:
         f.write('var nodes = [\n')
         
-        for i, state in enumerate(states):
-            comma = ',' if i < len(states) - 1 else ''
+        for i, state in enumerate(unique_states_list):
+            comma = ',' if i < len(unique_states_list) - 1 else ''
             f.write(f'  {{\n')
             f.write(f'    id: {escape_js_string(state["state_id"])},\n')
-            f.write(f'    tag: {escape_js_string(state["tag"])},\n')
             f.write(f'    step: {state["step"]},\n')
             f.write(f'    activity: {escape_js_string(state["activity"])},\n')
-            f.write(f'    image: {escape_js_string(state["screenshot_path"])},\n')
-            f.write(f'    xml: {escape_js_string(state["xml_path"])}\n')
+            f.write(f'    image: {escape_js_string(state["image"])},\n')
+            f.write(f'    xml: {escape_js_string(state["xml"])}\n')
             f.write(f'  }}{comma}\n')
         
         f.write('];\n\n')
