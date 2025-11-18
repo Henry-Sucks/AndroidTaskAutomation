@@ -1,8 +1,0 @@
-{
-  "tag": "e0054",
-  "event_id": "ee8dc65b7068-->ee8dc65b7068",
-  "step": 54,
-  "from": "ee8dc65b7068",
-  "to": "ee8dc65b7068",
-  "raw_action": "g0a1[3,53][6]@MODEL_SCROLL_TOP_DOWNclass=androidx.viewpager.widget.ViewPager;resource-id=net.gsantner.markor:id/view_pager;enabled=true;scrollable=true;[P=6][T=0][][S=1.000000][RN=1][0,0,1080,2148][]"
-}

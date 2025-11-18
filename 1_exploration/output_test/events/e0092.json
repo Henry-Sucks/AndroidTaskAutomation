@@ -1,8 +1,0 @@
-{
-  "tag": "e0092",
-  "event_id": "ee8dc65b7068-->2b4bebd52c4e",
-  "step": 92,
-  "from": "ee8dc65b7068",
-  "to": "2b4bebd52c4e",
-  "raw_action": "g0a9[12,91][9]@MODEL_BACKg0s0[1,92][92]net.gsantner.markor.activity.IntroActivity@471443323@Naming[0]@[W=5][A=10][P=8][T=0][]"
-}

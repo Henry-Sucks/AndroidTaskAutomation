@@ -1,8 +1,0 @@
-{
-  "tag": "e0049",
-  "event_id": "cdecd7e5e19c-->cdecd7e5e19c",
-  "step": 49,
-  "from": "cdecd7e5e19c",
-  "to": "cdecd7e5e19c",
-  "raw_action": "g0a6[6,48][5]@MODEL_LONG_CLICKclass=android.widget.TextView;resource-id=net.gsantner.markor:id/title;enabled=true;clickable=true;long-clickable=true;[P=6][T=0][][S=1.000000][RN=1][0,66,1080,433][To-Do]"
-}
