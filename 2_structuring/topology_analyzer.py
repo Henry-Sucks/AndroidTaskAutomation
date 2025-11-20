@@ -1,16 +1,16 @@
 """
 topology_analyzer.py
 
-Reads a `utg_clustered.js` file (a JS file that defines `nodes` and `edges` arrays),
-extracts nodes and edges, computes for each cluster:
- - entry points: nodes that are targets of inter-cluster edges
- - exit points: nodes that are sources of inter-cluster edges
- - center point: the node inside the cluster with highest internal degree (in+out)
+读取 `utg_clustered.js` 文件（一个定义了 `nodes` 和 `edges` 数组的JS文件），
+提取节点和边数据，为每个聚类计算：
+- 入口点：作为跨聚类边目标的节点
+- 出口点：作为跨聚类边源点的节点  
+- 中心点：聚类内部度数（入度+出度）最高的节点
 
-Writes the result to `cluster_info.json` next to the input file.
+将结果写入输入文件同目录下的 `cluster_info.json` 文件。
 
-Usage: python topology_analyzer.py /path/to/utg_clustered.js
-If no argument is given, it will try to read `utg_clustered.js` from the current working directory.
+用法：python topology_analyzer.py /path/to/utg_clustered.js
+如果未提供参数，程序将尝试从当前工作目录读取 `utg_clustered.js` 文件。
 """
 
 import json
