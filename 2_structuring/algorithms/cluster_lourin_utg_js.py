@@ -884,8 +884,8 @@ def main():
     # 执行Louvain聚类
     final_partition = clusterer.run_louvain_clustering()
     
-    # 保存结果
-    clusterer.save_clustering_results()
+    # # 保存结果
+    # clusterer.save_clustering_results()
     
     # 打印结果摘要
     communities = set(final_partition.values())

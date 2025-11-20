@@ -3,6 +3,11 @@ topology_analyzer.py
 
 读取 `utg_clustered.js` 文件（一个定义了 `nodes` 和 `edges` 数组的JS文件），
 提取节点和边数据，为每个聚类计算：
+- 聚类大小：包含的节点数量
+- 节点列表：聚类内所有节点的ID
+- 聚类内边：簇内节点之间的所有边
+- 来自其他聚类的边：按源聚类分组的跨聚类边
+- 到其他聚类的边：按目标聚类分组的跨聚类边
 - 入口点：作为跨聚类边目标的节点
 - 出口点：作为跨聚类边源点的节点  
 - 中心点：聚类内部度数（入度+出度）最高的节点
@@ -11,6 +16,22 @@ topology_analyzer.py
 
 用法：python topology_analyzer.py /path/to/utg_clustered.js
 如果未提供参数，程序将尝试从当前工作目录读取 `utg_clustered.js` 文件。
+
+输出格式：
+{
+  "clusters": {
+    "cluster_id": {
+      "size": int,                           # 聚类大小
+      "nodes": [node_id, ...],              # 节点列表
+      "edges_inside_cluster": [...],        # 聚类内边
+      "edges_from_other_clusters": [...],   # 来自其他聚类的边
+      "edges_to_other_clusters": [...],     # 到其他聚类的边
+      "entry_points": [node_id, ...],       # 入口点
+      "exit_points": [node_id, ...],        # 出口点
+      "center_point": [node_id]             # 中心点
+    }
+  }
+}
 """
 
 import json
@@ -159,22 +180,6 @@ def analyze_clusters(nodes, edges):
     print(f"输入节点数: {len(nodes)}")
     print(f"输入边数: {len(edges)}")
 
-    # # 检查节点cluster分布
-    # cluster_counts = {}
-    # for n in nodes:
-    #     print("节点数据:", n)
-    #     cluster = None
-    #     for k in ('cluster_id',):  # 注意这里的逗号，创建元组
-    #         if k in n:
-    #             cluster = n[k]
-    #             break
-    #     # 这行应该在for循环外部
-    #     if cluster is None:
-    #         cluster = 0
-    #     cluster_counts[cluster] = cluster_counts.get(cluster, 0) + 1
-    
-    # print("节点cluster分布:", cluster_counts)
-
     # Normalize node ids and cluster ids
     nodes_by_index = []
     nodes_by_id = {}
@@ -216,20 +221,39 @@ def analyze_clusters(nodes, edges):
 
     # Determine edge endpoints, normalize ids
     normalized_edges = []
-    for e in edges:
+    for i, e in enumerate(edges):
         # possible keys
         s = e.get('source') if 'source' in e else e.get('from') if 'from' in e else e.get('src') if 'src' in e else None
         t = e.get('target') if 'target' in e else e.get('to') if 'to' in e else e.get('dst') if 'dst' in e else None
 
         s_id = resolve_node_ref(s, nodes_by_index, nodes_by_id)
         t_id = resolve_node_ref(t, nodes_by_index, nodes_by_id)
-        normalized_edges.append({'source': s_id, 'target': t_id})
+        
+        # Get edge tag/id if available
+        edge_tag = e.get('id', e.get('tag', f'e{i}'))
+        
+        normalized_edges.append({
+            'source': s_id, 
+            'target': t_id, 
+            'tag': str(edge_tag),
+            'original': e
+        })
 
-    # Compute entry/exit points and internal degrees
+    # Initialize cluster data structures
     clusters = {}
     for nid, entry in nodes_by_id.items():
         cid = entry['cluster']
-        clusters.setdefault(cid, {'nodes': set(), 'entry_points': set(), 'exit_points': set(), 'deg_in': {}, 'deg_out': {}})
+        if cid not in clusters:
+            clusters[cid] = {
+                'nodes': set(), 
+                'entry_points': set(), 
+                'exit_points': set(), 
+                'deg_in': {}, 
+                'deg_out': {},
+                'edges_inside_cluster': [],
+                'edges_from_other_clusters': {},
+                'edges_to_other_clusters': {}
+            }
         clusters[cid]['nodes'].add(nid)
         clusters[cid]['deg_in'][nid] = 0
         clusters[cid]['deg_out'][nid] = 0
@@ -238,6 +262,7 @@ def analyze_clusters(nodes, edges):
     for e in normalized_edges:
         s = e['source']
         t = e['target']
+        tag = e['tag']
         s_cluster = node_cluster.get(s)
         t_cluster = node_cluster.get(t)
 
@@ -249,12 +274,29 @@ def analyze_clusters(nodes, edges):
             # inter-cluster: t is entry of its cluster, s is exit of its cluster
             clusters[t_cluster]['entry_points'].add(t)
             clusters[s_cluster]['exit_points'].add(s)
+            
+            # Track edges from other clusters
+            if s_cluster not in clusters[t_cluster]['edges_from_other_clusters']:
+                clusters[t_cluster]['edges_from_other_clusters'][s_cluster] = []
+            clusters[t_cluster]['edges_from_other_clusters'][s_cluster].append({
+                'from': s, 'to': t, 'tag': tag
+            })
+            
+            # Track edges to other clusters  
+            if t_cluster not in clusters[s_cluster]['edges_to_other_clusters']:
+                clusters[s_cluster]['edges_to_other_clusters'][t_cluster] = []
+            clusters[s_cluster]['edges_to_other_clusters'][t_cluster].append({
+                'from': s, 'to': t, 'tag': tag
+            })
         else:
-            # internal edge: count degrees
+            # internal edge: count degrees and store edge
             clusters[s_cluster]['deg_out'][s] = clusters[s_cluster]['deg_out'].get(s, 0) + 1
             clusters[s_cluster]['deg_in'][t] = clusters[s_cluster]['deg_in'].get(t, 0) + 1
+            clusters[s_cluster]['edges_inside_cluster'].append({
+                'from': s, 'to': t, 'tag': tag
+            })
 
-    # Compute center point per cluster (highest internal in+out)
+    # Build final result
     result = {}
     for cid, data in clusters.items():
         center = None
@@ -267,20 +309,34 @@ def analyze_clusters(nodes, edges):
                 max_deg = deg
                 center = nid
 
+        # Format edges_from_other_clusters
+        edges_from_other = []
+        for from_cluster_id, edge_list in data['edges_from_other_clusters'].items():
+            edges_from_other.append({
+                'from_cluster_id': str(from_cluster_id),
+                'edges': edge_list
+            })
+            
+        # Format edges_to_other_clusters
+        edges_to_other = []
+        for to_cluster_id, edge_list in data['edges_to_other_clusters'].items():
+            edges_to_other.append({
+                'to_cluster_id': str(to_cluster_id),
+                'edges': edge_list
+            })
+
         result[str(cid)] = {
+            'size': len(data['nodes']),
+            'nodes': sorted(list(data['nodes'])),
+            'edges_inside_cluster': data['edges_inside_cluster'],
+            'edges_from_other_clusters': edges_from_other,
+            'edges_to_other_clusters': edges_to_other,
             'entry_points': sorted(list(data['entry_points'])),
             'exit_points': sorted(list(data['exit_points'])),
             'center_point': [center] if center is not None else []
         }
 
-    # 在返回前添加最终检查
     print("=== 分析结果检查 ===")
-    # for cid, data in clusters.items():
-    #     print(f"聚类 {cid}:")
-    #     print(f"  节点数: {len(data['nodes'])}")
-    #     print(f"  入口点: {len(data['entry_points'])}")
-    #     print(f"  出口点: {len(data['exit_points'])}")
-    #     print(f"  中心点: {data['deg_in']}")  # 显示度数信息
 
     return {'clusters': result}
 
