@@ -1,0 +1,1 @@
+python topology_analyzer.py "c:\Projects\AndroidTaskAutomation\2_structuring\utg\sata-org.wikipedia-ape-sata-running-minutes-15_utg\utg_clustered.js"
