@@ -3,7 +3,7 @@
 from clients.vlm_client import VLMClient
 
 # 固定 Prompt 模板 —— 已根据你的要求写好
-PROMPT_TEMPLATE = """
+IMAGE_PROMPT_TEMPLATE = """
 You are a UI Perception Specialist. Your goal is to analyze a mobile app screenshot and describe its **functional affordance** concisely.
 Do not describe colors or styles. Focus on:
 1. **Main Header/Title**: What is the page name?
@@ -45,9 +45,9 @@ class ImageSummarizer:
 
         # 附加信息，如果有的话
         if extra_note:
-            prompt = PROMPT_TEMPLATE + f"\n\nAdditional note: {extra_note}\n"
+            prompt = IMAGE_PROMPT_TEMPLATE + f"\n\nAdditional note: {extra_note}\n"
         else:
-            prompt = PROMPT_TEMPLATE
+            prompt = IMAGE_PROMPT_TEMPLATE
 
         output = self.client.run(
             prompt=prompt,
@@ -56,3 +56,6 @@ class ImageSummarizer:
         )
 
         return output["content"]
+    
+
+class 

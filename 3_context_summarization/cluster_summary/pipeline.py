@@ -2,7 +2,8 @@ import json
 
 from loader import ClusterDataLoader
 from sampler import ClusterSampler
-from summarizer import ImageSummarizer
+from image_summarizer import ImageSummarizer
+from llm_summarizer import LLMSummarizer
 
 class ClusterSummaryPipeline:
     def __init__(self, cluster_info_path, utg_clustered_path, image_root):
@@ -40,7 +41,7 @@ class ClusterSummaryPipeline:
                     if not node:
                         continue
 
-                    img = self.mapper.node_to_image_path(node)
+                    img = self.loader.node_to_image_path(node)
                     if not img:
                         continue
 
@@ -58,3 +59,15 @@ class ClusterSummaryPipeline:
             json.dump(summaries, f, indent=2)
 
         print(f"Saved cluster summaries → {output_path}")
+
+
+        llm_summarizer = LLMSummarizer()
+
+        cluster_summary = llm_summarizer.summarize_cluster(summaries)
+
+        
+
+
+
+
+
