@@ -57,5 +57,3 @@ class ImageSummarizer:
 
         return output["content"]
     
-
-class 

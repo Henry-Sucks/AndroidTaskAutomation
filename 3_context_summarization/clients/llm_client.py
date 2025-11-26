@@ -1,6 +1,6 @@
 import os
 from openai import OpenAI
-
+from clients.config import DEEPSEEK_API_KEY
 class LLMClient:
     def __init__(self, api_key=None, base_url=None, model="deepseek-chat"):
         """
@@ -28,7 +28,7 @@ class LLMClient:
         # 设置API密钥
         if api_key is None:
             if "deepseek" in model.lower():
-                self.api_key = "sk-2e6551d89ef7435b914421a8e6603062"
+                self.api_key = DEEPSEEK_API_KEY
                 if self.api_key is None:
                     raise ValueError("DeepSeek API密钥未提供，请设置DEEPSEEK_API_KEY环境变量")
             elif "qwen" in model.lower():

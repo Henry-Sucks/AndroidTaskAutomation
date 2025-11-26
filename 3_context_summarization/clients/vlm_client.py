@@ -1,10 +1,11 @@
 import base64
 import os
 from openai import OpenAI
+from clients.config import QWEN_VLM_API_KEY
 
 class VLMClient:
     def __init__(self, api_key=None, base_url=None, model="qwen3-vl-flash"):
-        self.api_key = api_key or "sk-e6f0feed95c94db7b93a75b57f37795c"
+        self.api_key = api_key or QWEN_VLM_API_KEY
         self.base_url = base_url or "https://dashscope.aliyuncs.com/compatible-mode/v1"
         self.model = model
         self.client = OpenAI(api_key=self.api_key, base_url=self.base_url)
