@@ -7,7 +7,9 @@ from image_summarizer import ImageSummarizer
 from llm_summarizer import LLMSummarizer
 
 class ClusterSummaryPipeline:
-    def __init__(self, graph_path):
+    def __init__(self, package_name, graph_path):
+        self.package_name = package_name
+
         cluster_info_path = graph_path + "\\cluster_info.json"
         utg_clustered_path = graph_path + "\\utg_clustered.js"
         image_root = graph_path + "\\states\\"
@@ -28,6 +30,7 @@ class ClusterSummaryPipeline:
 
         try:
             desc = self.summarizer.summarize(
+                package_name=self.package_name,
                 image_url_or_path=img_path,
                 extra_note=f"Point type: {point_type}",
                 enable_thinking=False

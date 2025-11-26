@@ -2,7 +2,6 @@
 
 from clients.vlm_client import VLMClient
 
-# 固定 Prompt 模板 —— 已根据你的要求写好
 IMAGE_PROMPT_TEMPLATE = """
 You are a UI Perception Specialist. Your goal is to analyze a mobile app screenshot and describe its **functional affordance** concisely.
 Do not describe colors or styles. Focus on:
@@ -30,25 +29,20 @@ class ImageSummarizer:
     def __init__(self, model="qwen3-vl-flash"):
         self.client = VLMClient(model=model)
 
-    def summarize(self, image_url_or_path, extra_note=None, enable_thinking=False):
+    def summarize(self, package_name, image_url_or_path, extra_note=None, enable_thinking=False):
         """
-        调用视觉大模型，对图片进行 UI 功能分析。
-        
-        参数：
-            image_url_or_path: 支持 URL 或 data:image;base64、本地路径（如果 VLMClient 支持）
-            extra_note: 附加说明，如 "Point type: entry_point"
-            enable_thinking: 是否启用模型思考
-        
-        返回：
-            一个字符串（通常为 JSON 文本）
+        增强：将 package_name 加入 Prompt，提供 App 上下文。
         """
 
-        # 附加信息，如果有的话
+        # ---- 添加 App 名称信息 ----
+        app_context_prompt = f"\nThis screenshot comes from the mobile application: **{package_name}**.\n"
+        prompt = IMAGE_PROMPT_TEMPLATE + app_context_prompt
+
+        # 附加说明
         if extra_note:
-            prompt = IMAGE_PROMPT_TEMPLATE + f"\n\nAdditional note: {extra_note}\n"
-        else:
-            prompt = IMAGE_PROMPT_TEMPLATE
+            prompt += f"\nAdditional note: {extra_note}\n"
 
+        # 调用视觉模型
         output = self.client.run(
             prompt=prompt,
             image_url=image_url_or_path,
@@ -56,4 +50,3 @@ class ImageSummarizer:
         )
 
         return output["content"]
-    
