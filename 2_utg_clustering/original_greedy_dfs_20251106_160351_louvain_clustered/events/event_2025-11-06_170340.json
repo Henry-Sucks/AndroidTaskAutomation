@@ -1,7 +1,0 @@
-{
-  "event_str": "TouchEvent(state=5c83d82a17a2f3c0d74ac909872c2816, view=8be1c36ccb4a11c9aae5e98234b1b7fa(DocumentActivity/CheckBox-Multiline))",
-  "start_state": "5c83d82a17a2f3c0d74ac909872c2816",
-  "stop_state": "66d95acfaf0f663775d61eb498da1a0e",
-  "start_cluster": "64",
-  "stop_cluster": "64"
-}

@@ -1,7 +1,0 @@
-{
-  "event_str": "TouchEvent(state=1811e184d43c6910813bff501cf97f24, view=94e03a5341c28f1d40658802beef66db(MainActivity/CheckBox-Case sensi))",
-  "start_state": "1811e184d43c6910813bff501cf97f24",
-  "stop_state": "096af37b2c1377d5b1e6175f4dc089c5",
-  "start_cluster": "35",
-  "stop_cluster": "120"
-}

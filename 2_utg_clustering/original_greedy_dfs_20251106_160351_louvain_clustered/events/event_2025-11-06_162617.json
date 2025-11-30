@@ -1,7 +1,0 @@
-{
-  "event_str": "TouchEvent(state=43158e003a57b727bdd78f1fa56d284b, view=1d67af9e41b0b89d78bd14dc18aa4f8c(SettingsActivity/ImageButton-))",
-  "start_state": "43158e003a57b727bdd78f1fa56d284b",
-  "stop_state": "e4a723f9fb7e95d661c27b3afbbc6ca3",
-  "start_cluster": "135",
-  "stop_cluster": "91"
-}

@@ -1,7 +1,0 @@
-{
-  "event_str": "ScrollEvent(state=6de6ff63d27541937706625a858aa8e7, view=a6bda71f1c256d5b2455b5dd624891d8(DocumentActivity/WebView-), direction=right)",
-  "start_state": "6de6ff63d27541937706625a858aa8e7",
-  "stop_state": "6de6ff63d27541937706625a858aa8e7",
-  "start_cluster": "91",
-  "stop_cluster": "91"
-}

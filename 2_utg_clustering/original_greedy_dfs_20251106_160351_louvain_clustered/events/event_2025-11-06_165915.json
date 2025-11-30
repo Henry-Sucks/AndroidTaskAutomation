@@ -1,7 +1,0 @@
-{
-  "event_str": "TouchEvent(state=645aa04593da03b2c5d85d0c09bf75c3, view=c22d0fd62f6b1a6c93a285dc3eaffc69(ActionButtonSettingsActivity/TextView-Delete lin))",
-  "start_state": "645aa04593da03b2c5d85d0c09bf75c3",
-  "stop_state": "645aa04593da03b2c5d85d0c09bf75c3",
-  "start_cluster": "135",
-  "stop_cluster": "135"
-}

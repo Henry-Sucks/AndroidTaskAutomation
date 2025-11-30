@@ -1,7 +1,0 @@
-{
-  "event_str": "TouchEvent(state=e17ee888321ce95c92fcf4e9db3a9938, view=c129ddd0081a1c588bd0eb4730975062(DocumentActivity/Button-))",
-  "start_state": "e17ee888321ce95c92fcf4e9db3a9938",
-  "stop_state": "fda4e0a29337f539cccd1dcde64248f6",
-  "start_cluster": "88",
-  "stop_cluster": "88"
-}

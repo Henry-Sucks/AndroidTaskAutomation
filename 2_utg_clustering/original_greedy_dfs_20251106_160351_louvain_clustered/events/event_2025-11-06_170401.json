@@ -1,7 +1,0 @@
-{
-  "event_str": "TouchEvent(state=5c83d82a17a2f3c0d74ac909872c2816, view=ffcfc11f9d77688aa71ca3ed960d0666(DocumentActivity/Button-CANCEL))",
-  "start_state": "5c83d82a17a2f3c0d74ac909872c2816",
-  "stop_state": "4efeb321d0d4d1bda08594891d260b69",
-  "start_cluster": "64",
-  "stop_cluster": "75"
-}

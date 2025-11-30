@@ -1,7 +1,0 @@
-{
-  "event_str": "TouchEvent(state=66d95acfaf0f663775d61eb498da1a0e, view=6877c88308afaa92291fd3271b68c78c(DocumentActivity/EditText-Replace wi))",
-  "start_state": "66d95acfaf0f663775d61eb498da1a0e",
-  "stop_state": "66d95acfaf0f663775d61eb498da1a0e",
-  "start_cluster": "64",
-  "stop_cluster": "64"
-}

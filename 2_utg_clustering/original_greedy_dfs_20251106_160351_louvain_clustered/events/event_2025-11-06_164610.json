@@ -1,7 +1,0 @@
-{
-  "event_str": "ScrollEvent(state=479511c477a3134cb3cee9fdbb751819, view=03ea1d6f9b39d108eae84eea2f5f1e31(MainActivity/HorizontalScrollView-), direction=down)",
-  "start_state": "479511c477a3134cb3cee9fdbb751819",
-  "stop_state": "23c005f61a1f941d3971bcc9dd6380a0",
-  "start_cluster": "46",
-  "stop_cluster": "46"
-}

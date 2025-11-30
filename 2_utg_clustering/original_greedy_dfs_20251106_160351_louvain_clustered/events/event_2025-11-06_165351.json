@@ -1,7 +1,0 @@
-{
-  "event_str": "TouchEvent(state=8c21340d5330cab5c8872dbaf3b7e2a8, view=e927e38a0ee5eaa36e1f4c2a5afd599f(MainActivity/TextView-Import fro))",
-  "start_state": "8c21340d5330cab5c8872dbaf3b7e2a8",
-  "stop_state": "8a89640ce13f6368d9ae02fe43cb5e2e",
-  "start_cluster": "91",
-  "stop_cluster": "91"
-}

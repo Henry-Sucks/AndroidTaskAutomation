@@ -1,7 +1,0 @@
-{
-  "event_str": "TouchEvent(state=9f9d9431077b0727ae453bfb68bdeeeb, view=ccff46bf2adcb6ed4d35d25389c3839c(MainActivity/EditText-[^\\S\\n\\r]+))",
-  "start_state": "9f9d9431077b0727ae453bfb68bdeeeb",
-  "stop_state": "9f9d9431077b0727ae453bfb68bdeeeb",
-  "start_cluster": "115",
-  "stop_cluster": "115"
-}

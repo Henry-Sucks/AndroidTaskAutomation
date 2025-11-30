@@ -1,7 +1,0 @@
-{
-  "event_str": "KillAppEvent()",
-  "start_state": "fdf67e5782bf3a9b40a6f80167440584",
-  "stop_state": "d54e7027c78ff5d030daad3662613b87",
-  "start_cluster": "unknown_cluster",
-  "stop_cluster": "filtered_isolated"
-}

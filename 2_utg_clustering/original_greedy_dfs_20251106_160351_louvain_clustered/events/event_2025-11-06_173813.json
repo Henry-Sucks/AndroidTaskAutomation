@@ -1,7 +1,0 @@
-{
-  "event_str": "IntentEvent(intent='am start net.gsantner.markor/net.gsantner.markor.activity.MainActivity')",
-  "start_state": "db7ce9ecc7ddb328ee74da69ce037856",
-  "stop_state": "e327184e5f49e7663fde6c1d10b5d215",
-  "start_cluster": "75",
-  "stop_cluster": "75"
-}

@@ -1,7 +1,0 @@
-{
-  "event_str": "TouchEvent(state=cebe7e175389c6c51afe16a2b3fcd205, view=1413aa5cabc1df18896ca31c17c63a5a(DocumentActivity/Button-OK (4)))",
-  "start_state": "cebe7e175389c6c51afe16a2b3fcd205",
-  "stop_state": "fdf01f87d58fc11883997312bad429c5",
-  "start_cluster": "75",
-  "stop_cluster": "75"
-}

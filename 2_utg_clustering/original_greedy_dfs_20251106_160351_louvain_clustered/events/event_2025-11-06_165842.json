@@ -1,7 +1,0 @@
-{
-  "event_str": "TouchEvent(state=645aa04593da03b2c5d85d0c09bf75c3, view=b0302161077a2102042580207b66cc30(ActionButtonSettingsActivity/TextView-Rotate))",
-  "start_state": "645aa04593da03b2c5d85d0c09bf75c3",
-  "stop_state": "645aa04593da03b2c5d85d0c09bf75c3",
-  "start_cluster": "135",
-  "stop_cluster": "135"
-}

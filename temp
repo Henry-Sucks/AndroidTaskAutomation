@@ -6,3 +6,7 @@
 
 8f04900d6ff21a979472d1d41e0e1138
 80a5d093529b10172a7828c1c375d24b
+
+
+python script.py ./ com.tencent.hm.qqmusic
+

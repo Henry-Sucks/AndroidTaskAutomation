@@ -342,35 +342,35 @@ def analyze_clusters(nodes, edges):
 
 
 def main():
-	if len(sys.argv) > 1:
-		input_path = Path(sys.argv[1])
-	else:
-		input_path = Path('utg_clustered.js')
+    if len(sys.argv) > 1:
+        input_path = Path(sys.argv[1])
+    else:
+        input_path = Path('utg_clustered.js')
 
-	if not input_path.exists():
-		print(f"Input file not found: {input_path}")
-		sys.exit(2)
+    if not input_path.exists():
+        print(f"Input file not found: {input_path}")
+        sys.exit(2)
 
-	text = read_file_text(input_path)
+    text = read_file_text(input_path)
 
-	nodes_text = extract_js_array(text, 'nodes')
-	edges_text = extract_js_array(text, 'edges')
+    nodes_text = extract_js_array(text, 'nodes')
+    edges_text = extract_js_array(text, 'edges')
 
-	if nodes_text is None or edges_text is None:
-		print("Could not find `nodes` or `edges` arrays in the JS file.")
-		sys.exit(2)
+    if nodes_text is None or edges_text is None:
+        print("Could not find `nodes` or `edges` arrays in the JS file.")
+        sys.exit(2)
 
-	nodes = parse_js_array_to_list(nodes_text)
-	print("Nodes parsed:", len(nodes))
-	edges = parse_js_array_to_list(edges_text)
-	print("Edges parsed:", len(edges))
-    
+    nodes = parse_js_array_to_list(nodes_text)
+    print("Nodes parsed:", len(nodes))
+    edges = parse_js_array_to_list(edges_text)
+    print("Edges parsed:", len(edges))
 
-	info = analyze_clusters(nodes, edges)
 
-	out_path = input_path.parent / 'cluster_info.json'
-	out_path.write_text(json.dumps(info, indent=2, ensure_ascii=False), encoding='utf-8')
-	print(f"Wrote cluster info to: {out_path}")
+    info = analyze_clusters(nodes, edges)
+
+    out_path = input_path.parent / 'cluster_info.json'
+    out_path.write_text(json.dumps(info, indent=2, ensure_ascii=False), encoding='utf-8')
+    print(f"Wrote cluster info to: {out_path}")
 
 
 if __name__ == '__main__':

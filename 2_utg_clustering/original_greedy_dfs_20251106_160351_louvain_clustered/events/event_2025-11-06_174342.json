@@ -1,7 +1,0 @@
-{
-  "event_str": "TouchEvent(state=14909f7b70a00d4f1d63f829e58a4303, view=8ddc49e157b911a7cc3126cbc90ba904(DocumentActivity/CheckedTextView-))",
-  "start_state": "14909f7b70a00d4f1d63f829e58a4303",
-  "stop_state": "14909f7b70a00d4f1d63f829e58a4303",
-  "start_cluster": "75",
-  "stop_cluster": "75"
-}

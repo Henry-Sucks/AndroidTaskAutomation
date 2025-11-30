@@ -1,7 +1,0 @@
-{
-  "event_str": "TouchEvent(state=a8d23730ead7867452fcf87a033dcce7, view=b52e0ddb7d2abefb39a64b898c8c9ebe(MainActivity/Spinner-))",
-  "start_state": "a8d23730ead7867452fcf87a033dcce7",
-  "stop_state": "d875fed7597c4dfdb2b7c5a568776832",
-  "start_cluster": "115",
-  "stop_cluster": "115"
-}

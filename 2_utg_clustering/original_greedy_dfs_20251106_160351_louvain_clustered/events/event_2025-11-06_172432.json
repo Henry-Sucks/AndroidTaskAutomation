@@ -1,7 +1,0 @@
-{
-  "event_str": "TouchEvent(state=6de6ff63d27541937706625a858aa8e7, view=07938b23ccaaaec9ef3cb02850c1e0bf(DocumentActivity/ImageView-))",
-  "start_state": "6de6ff63d27541937706625a858aa8e7",
-  "stop_state": "6de6ff63d27541937706625a858aa8e7",
-  "start_cluster": "91",
-  "stop_cluster": "91"
-}

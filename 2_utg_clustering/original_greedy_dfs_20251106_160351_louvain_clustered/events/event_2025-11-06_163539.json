@@ -1,7 +1,0 @@
-{
-  "event_str": "ScrollEvent(state=49e090914106d5ec86c908f01e80639c, view=2aa9203cc4cae1db6455aabbf6054e1e(MainActivity/ViewPager-), direction=up)",
-  "start_state": "49e090914106d5ec86c908f01e80639c",
-  "stop_state": "49e090914106d5ec86c908f01e80639c",
-  "start_cluster": "46",
-  "stop_cluster": "46"
-}

@@ -1,7 +1,0 @@
-{
-  "event_str": "SetTextEvent(state=10cd23ccc37f3019d5a67a48e2a42f3b, view=be6672e9627df02472ec10299f5b09f8(MainActivity/EditText-Search), text=Hello World)",
-  "start_state": "10cd23ccc37f3019d5a67a48e2a42f3b",
-  "stop_state": "cfc62503866dfb76ecebbba64951a446",
-  "start_cluster": "69",
-  "stop_cluster": "69"
-}

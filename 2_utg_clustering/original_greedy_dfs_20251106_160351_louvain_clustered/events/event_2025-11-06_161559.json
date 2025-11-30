@@ -1,7 +1,0 @@
-{
-  "event_str": "TouchEvent(state=fc750b143884687c82006081138ceab6, view=b00e254d52ed3288797f2228a2187e97(MainActivity/CheckedTextView-MIME type))",
-  "start_state": "fc750b143884687c82006081138ceab6",
-  "stop_state": "7c579d3c6529a5ac03ac9fd7267ac794",
-  "start_cluster": "25",
-  "stop_cluster": "25"
-}

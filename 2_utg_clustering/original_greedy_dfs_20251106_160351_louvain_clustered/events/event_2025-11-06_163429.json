@@ -1,7 +1,0 @@
-{
-  "event_str": "KeyEvent(state=d8fa26ebaa0256519d7531d9dd2110bc, name=BACK)",
-  "start_state": "d8fa26ebaa0256519d7531d9dd2110bc",
-  "stop_state": "d8fa26ebaa0256519d7531d9dd2110bc",
-  "start_cluster": "46",
-  "stop_cluster": "46"
-}

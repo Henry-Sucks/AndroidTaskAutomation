@@ -1,7 +1,0 @@
-{
-  "event_str": "LongTouchEvent(state=07bed0e2a28de24377747119fdb213c6, view=bcdf762c596e8fca06a08171ece97a83(MainActivity/ListView-))",
-  "start_state": "07bed0e2a28de24377747119fdb213c6",
-  "stop_state": "07bed0e2a28de24377747119fdb213c6",
-  "start_cluster": "91",
-  "stop_cluster": "91"
-}

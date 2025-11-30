@@ -1,7 +1,0 @@
-{
-  "event_str": "SetTextEvent(state=5c83d82a17a2f3c0d74ac909872c2816, view=6877c88308afaa92291fd3271b68c78c(DocumentActivity/EditText-Replace wi), text=Hello World)",
-  "start_state": "5c83d82a17a2f3c0d74ac909872c2816",
-  "stop_state": "d6a2d064d7eb7767661234308b29e38d",
-  "start_cluster": "64",
-  "stop_cluster": "64"
-}

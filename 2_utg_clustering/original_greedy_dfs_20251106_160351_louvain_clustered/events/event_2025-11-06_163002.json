@@ -1,7 +1,0 @@
-{
-  "event_str": "TouchEvent(state=b431f6829385d94535786066bc911fa9, view=11cac8151bf9b70a841d60698630e337(MainActivity/CheckBox-Regex))",
-  "start_state": "b431f6829385d94535786066bc911fa9",
-  "stop_state": "e3c011ad37d4a80a37de0b8a31852253",
-  "start_cluster": "115",
-  "stop_cluster": "115"
-}
