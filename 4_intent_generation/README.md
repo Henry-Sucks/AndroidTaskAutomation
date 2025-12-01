@@ -1,0 +1,1 @@
+python ./intent_generation.py
