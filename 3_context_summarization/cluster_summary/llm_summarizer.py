@@ -49,6 +49,8 @@ class LLMSummarizer:
             "You understand user flows, UI navigation, and app-level functionality."
         )
 
+        print(prompt)
+
         # use the LLM client to run inference
         response = self.client.run(
             prompt=prompt,

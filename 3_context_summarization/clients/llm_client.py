@@ -32,7 +32,7 @@ class LLMClient:
                 if self.api_key is None:
                     raise ValueError("DeepSeek API密钥未提供，请设置DEEPSEEK_API_KEY环境变量")
             elif "qwen" in model.lower():
-                self.api_key = os.environ.get("DASHSCOPE_API_KEY", "sk-e6f0feed95c94db7b93a75b57f37795c")
+                self.api_key = os.environ.get("DASHSCOPE_API_KEY")
             else:
                 self.api_key = os.environ.get("DEEPSEEK_API_KEY")
                 if self.api_key is None:
@@ -127,58 +127,3 @@ class LLMClient:
             str: 模型回复
         """
         return self.chat(conversation_history, temperature, max_tokens, stream)
-
-
-# 示例用法
-if __name__ == "__main__":
-    # 示例1: 使用DeepSeek模型进行简单对话
-    print("=== 示例1: DeepSeek简单对话 ===")
-    client = LLMClient(model="deepseek-chat")
-    
-    response = client.run(
-        prompt="请用中文介绍一下人工智能的发展历史",
-        system_prompt="你是一个专业的人工智能助手。"
-    )
-    print("=== 回复 ===")
-    print(response)
-    
-    print("\n" + "="*50 + "\n")
-    
-    # 示例2: 多轮对话
-    print("=== 示例2: 多轮对话 ===")
-    conversation = [
-        {"role": "system", "content": "你是一个专业的翻译助手。"},
-        {"role": "user", "content": "请将以下英文翻译成中文: 'Hello, how are you today?'"},
-        {"role": "assistant", "content": "你好，你今天怎么样？"},
-        {"role": "user", "content": "再翻译这句: 'I am learning about artificial intelligence.'"}
-    ]
-    
-    translation = client.multi_turn_chat(conversation)
-    print("=== 翻译结果 ===")
-    print(translation)
-    
-    print("\n" + "="*50 + "\n")
-    
-    # 示例3: 使用流式输出
-    print("=== 示例3: 流式输出 ===")
-    print("正在生成回复...")
-    stream_response = client.run(
-        prompt="用100字简要说明机器学习的基本概念",
-        system_prompt="你是一个AI教育专家，需要用简单易懂的语言解释概念。",
-        stream=True
-    )
-    print("\n=== 完整回复 ===")
-    print(stream_response)
-    
-    print("\n" + "="*50 + "\n")
-    
-    # 示例4: 使用Qwen文本模型
-    print("=== 示例4: 使用Qwen文本模型 ===")
-    qwen_client = LLMClient(model="qwen-plus")
-    
-    qwen_response = qwen_client.run(
-        prompt="写一首关于秋天的短诗",
-        temperature=0.9  # 更高的随机性让创作更有创意
-    )
-    print("=== 诗歌 ===")
-    print(qwen_response)

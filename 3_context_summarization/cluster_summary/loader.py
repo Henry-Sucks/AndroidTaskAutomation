@@ -85,7 +85,7 @@ class ClusterDataLoader:
         return self.node_map.get(node_id, None)
     
     def node_to_image_path(self, node_info):
-        # utg_clustered.js 中 image = "s0001.png"
         filename = node_info["image"]
         path = os.path.join(self.image_root, filename)
+        print(path)
         return path if os.path.exists(path) else None

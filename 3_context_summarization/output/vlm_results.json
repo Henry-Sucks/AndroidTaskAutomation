@@ -1,0 +1,36 @@
+{
+  "95": {
+    "entry_points": [
+      {
+        "node_id": "AB97229E7648345EB2A17130215146AA",
+        "image": "C:\\Projects\\AndroidTaskAutomation\\3_context_summarization\\utg\\NetEase Cloud Music\\states\\C9B8C0E39E6A138C0548DB8E41C29F79.jpeg",
+        "description": "{\n  \"page_title\": \"联合会员专区\",\n  \"primary_function\": \"Purchase bundled VIP memberships across multiple platforms\",\n  \"key_elements\": [\n    \"立即开通\",\n    \"黑胶VIPx芒果TV 联合年卡\",\n    \"黑胶VIPx优酷视频 联合年卡\"\n  ],\n  \"visual_clues\": \"Prominent '立即开通' buttons indicate purchase actions. App icons (Mango TV, Youku) and '黑胶VIP' branding signify cross-platform membership bundles.\"\n}"
+      }
+    ],
+    "exit_points": [],
+    "center_point": [
+      {
+        "node_id": "EC7A951BF8550E173D756B3B096C62A9",
+        "image": "C:\\Projects\\AndroidTaskAutomation\\3_context_summarization\\utg\\NetEase Cloud Music\\states\\E84C35D2CBA87657037F9D3CBC228789.jpeg",
+        "description": "{\n  \"page_title\": \"联合会员\",\n  \"primary_function\": \"购买或开通联合会员套餐\",\n  \"key_elements\": [\n    \"立即开通\",\n    \"限时3.7折\",\n    \"猜你喜欢\",\n    \"500杯奶茶免费送\"\n  ],\n  \"visual_clues\": \"页面展示多个联合会员套餐选项，每个包含平台Logo、价格、原价划线及‘立即开通’按钮；顶部有促销标签如‘限时3.7折’；中部有‘猜你喜欢’推荐模块；底部有年终福利横幅。\"\n}"
+      }
+    ],
+    "sample_nodes": [
+      {
+        "node_id": "4454F65660E39BFC86D793410E94BFD2",
+        "image": "C:\\Projects\\AndroidTaskAutomation\\3_context_summarization\\utg\\NetEase Cloud Music\\states\\1576A499AEA07B66C9BDBA5CE8EC597A.jpeg",
+        "description": "{\n  \"page_title\": \"联合会员专区\",\n  \"primary_function\": \"Purchase联合会员套餐\",\n  \"key_elements\": [\n    \"立即开通\",\n    \"黑胶VIPx芒果TV 联合年卡\",\n    \"黑胶VIPx优酷视频 联合年卡\"\n  ],\n  \"visual_clues\": \"Promotional banners for discounted joint memberships with app logos (Mango TV, Youku) and '立即开通' buttons indicating purchase action.\"\n}"
+      },
+      {
+        "node_id": "AB97229E7648345EB2A17130215146AA",
+        "image": "C:\\Projects\\AndroidTaskAutomation\\3_context_summarization\\utg\\NetEase Cloud Music\\states\\C9B8C0E39E6A138C0548DB8E41C29F79.jpeg",
+        "description": "{\n  \"page_title\": \"联合会员专区\",\n  \"primary_function\": \"购买黑胶VIP联合会员套餐\",\n  \"key_elements\": [\n    \"立即开通\",\n    \"黑胶VIPx芒果TV 联合年卡\",\n    \"黑胶VIPx优酷视频 联合年卡\"\n  ],\n  \"visual_clues\": \"页面顶部显示‘联合会员专区’标题，下方有多个应用图标（如芒果TV、优酷）与‘黑胶VIP’组合的促销卡片，每个卡片包含价格和‘立即开通’按钮。顶部状态栏显示电池电量100%和时间16:54。\"\n}"
+      },
+      {
+        "node_id": "EC7A951BF8550E173D756B3B096C62A9",
+        "image": "C:\\Projects\\AndroidTaskAutomation\\3_context_summarization\\utg\\NetEase Cloud Music\\states\\E84C35D2CBA87657037F9D3CBC228789.jpeg",
+        "description": "{\n  \"page_title\": \"联合会员\",\n  \"primary_function\": \"Browse and purchase combined VIP membership packages for various apps.\",\n  \"key_elements\": [\n    \"立即开通\",\n    \"限时3.7折\",\n    \"猜你喜欢\",\n    \"500杯奶茶免费送\",\n    \"全部联合会员\"\n  ],\n  \"visual_clues\": \"The page displays multiple promotional cards for joint memberships with different platforms (e.g., Youku, Bilibili, Tencent Video). Each card includes a price, original price strike-through, and an 'Immediate Activation' button. A banner at the bottom promotes a gift campaign ('500 cups of free milk tea'). The layout suggests a shopping or subscription marketplace.\"\n}"
+      }
+    ]
+  }
+}

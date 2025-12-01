@@ -1,0 +1,271 @@
+{
+  "95": {
+    "size": 4,
+    "nodes": [
+      "0464A7E044969AAEAAD7918FD98C82CE",
+      "4454F65660E39BFC86D793410E94BFD2",
+      "AB97229E7648345EB2A17130215146AA",
+      "EC7A951BF8550E173D756B3B096C62A9"
+    ],
+    "edges_inside_cluster": [
+      {
+        "from": "AB97229E7648345EB2A17130215146AA",
+        "to": "EC7A951BF8550E173D756B3B096C62A9",
+        "tag": "AB97229E7648345EB2A17130215146AA#EC7A951BF8550E173D756B3B096C62A9",
+        "bboxes": [
+          [
+            0,
+            0,
+            1080,
+            2226
+          ]
+        ],
+        "action_types": [
+          "swipe up"
+        ]
+      },
+      {
+        "from": "AB97229E7648345EB2A17130215146AA",
+        "to": "4454F65660E39BFC86D793410E94BFD2",
+        "tag": "AB97229E7648345EB2A17130215146AA#4454F65660E39BFC86D793410E94BFD2",
+        "bboxes": [
+          [
+            0,
+            1869,
+            1080,
+            2226
+          ]
+        ],
+        "action_types": [
+          "swipe left"
+        ]
+      },
+      {
+        "from": "4454F65660E39BFC86D793410E94BFD2",
+        "to": "0464A7E044969AAEAAD7918FD98C82CE",
+        "tag": "4454F65660E39BFC86D793410E94BFD2#0464A7E044969AAEAAD7918FD98C82CE",
+        "bboxes": [
+          [
+            0,
+            0,
+            1080,
+            2226
+          ]
+        ],
+        "action_types": [
+          "swipe up"
+        ]
+      },
+      {
+        "from": "EC7A951BF8550E173D756B3B096C62A9",
+        "to": "EC7A951BF8550E173D756B3B096C62A9",
+        "tag": "EC7A951BF8550E173D756B3B096C62A9#EC7A951BF8550E173D756B3B096C62A9",
+        "bboxes": [
+          [
+            0,
+            0,
+            1080,
+            99
+          ]
+        ],
+        "action_types": [
+          "swipe left"
+        ]
+      },
+      {
+        "from": "EC7A951BF8550E173D756B3B096C62A9",
+        "to": "EC7A951BF8550E173D756B3B096C62A9",
+        "tag": "EC7A951BF8550E173D756B3B096C62A9#EC7A951BF8550E173D756B3B096C62A9",
+        "bboxes": [
+          [
+            0,
+            0,
+            1080,
+            99
+          ]
+        ],
+        "action_types": [
+          "swipe right"
+        ]
+      },
+      {
+        "from": "EC7A951BF8550E173D756B3B096C62A9",
+        "to": "EC7A951BF8550E173D756B3B096C62A9",
+        "tag": "EC7A951BF8550E173D756B3B096C62A9#EC7A951BF8550E173D756B3B096C62A9",
+        "bboxes": [
+          [
+            0,
+            129,
+            1080,
+            516
+          ]
+        ],
+        "action_types": [
+          "swipe left"
+        ]
+      },
+      {
+        "from": "EC7A951BF8550E173D756B3B096C62A9",
+        "to": "EC7A951BF8550E173D756B3B096C62A9",
+        "tag": "EC7A951BF8550E173D756B3B096C62A9#EC7A951BF8550E173D756B3B096C62A9",
+        "bboxes": [
+          [
+            0,
+            129,
+            1080,
+            516
+          ]
+        ],
+        "action_types": [
+          "swipe right"
+        ]
+      },
+      {
+        "from": "EC7A951BF8550E173D756B3B096C62A9",
+        "to": "EC7A951BF8550E173D756B3B096C62A9",
+        "tag": "EC7A951BF8550E173D756B3B096C62A9#EC7A951BF8550E173D756B3B096C62A9",
+        "bboxes": [
+          [
+            0,
+            0,
+            1080,
+            1014
+          ]
+        ],
+        "action_types": [
+          "swipe left"
+        ]
+      },
+      {
+        "from": "EC7A951BF8550E173D756B3B096C62A9",
+        "to": "EC7A951BF8550E173D756B3B096C62A9",
+        "tag": "EC7A951BF8550E173D756B3B096C62A9#EC7A951BF8550E173D756B3B096C62A9",
+        "bboxes": [
+          [
+            0,
+            0,
+            1080,
+            1014
+          ]
+        ],
+        "action_types": [
+          "swipe right"
+        ]
+      }
+    ],
+    "edges_from_other_clusters": [
+      {
+        "from_cluster_id": "98",
+        "edges": [
+          {
+            "from": "9E6E68848FF15020FF777C171F03C5BF",
+            "to": "AB97229E7648345EB2A17130215146AA",
+            "tag": "9E6E68848FF15020FF777C171F03C5BF#AB97229E7648345EB2A17130215146AA",
+            "bboxes": [
+              [
+                427,
+                284,
+                1032,
+                359
+              ]
+            ],
+            "action_types": [
+              "click"
+            ]
+          }
+        ]
+      },
+      {
+        "from_cluster_id": "62",
+        "edges": [
+          {
+            "from": "E3F31CAA99AE628C4BF1F3719B9244F8",
+            "to": "AB97229E7648345EB2A17130215146AA",
+            "tag": "E3F31CAA99AE628C4BF1F3719B9244F8#AB97229E7648345EB2A17130215146AA",
+            "bboxes": [
+              [
+                495,
+                284,
+                1032,
+                359
+              ]
+            ],
+            "action_types": [
+              "click"
+            ]
+          }
+        ]
+      }
+    ],
+    "edges_to_other_clusters": [],
+    "entry_points": [
+      "AB97229E7648345EB2A17130215146AA"
+    ],
+    "exit_points": [],
+    "center_point": [
+      "EC7A951BF8550E173D756B3B096C62A9"
+    ],
+    
+    "vlm_results": {
+      "entry_points": [
+        {
+          "node_id": "AB97229E7648345EB2A17130215146AA",
+          "image": "C:\\Projects\\AndroidTaskAutomation\\3_context_summarization\\utg\\NetEase Cloud Music\\states\\C9B8C0E39E6A138C0548DB8E41C29F79.jpeg",
+          "description": "{\n  \"page_title\": \"联合会员专区\",\n  \"primary_function\": \"Purchase bundled VIP memberships across multiple platforms\",\n  \"key_elements\": [\n    \"立即开通\",\n    \"黑胶VIPx芒果TV 联合年卡\",\n    \"黑胶VIPx优酷视频 联合年卡\"\n  ],\n  \"visual_clues\": \"Prominent '立即开通' buttons indicate purchase actions. App icons (Mango TV, Youku) and '黑胶VIP' branding signify cross-platform membership bundles.\"\n}"
+        }
+      ],
+      "exit_points": [],
+      "center_point": [
+        {
+          "node_id": "EC7A951BF8550E173D756B3B096C62A9",
+          "image": "C:\\Projects\\AndroidTaskAutomation\\3_context_summarization\\utg\\NetEase Cloud Music\\states\\E84C35D2CBA87657037F9D3CBC228789.jpeg",
+          "description": "{\n  \"page_title\": \"联合会员\",\n  \"primary_function\": \"购买或开通联合会员套餐\",\n  \"key_elements\": [\n    \"立即开通\",\n    \"限时3.7折\",\n    \"猜你喜欢\",\n    \"500杯奶茶免费送\"\n  ],\n  \"visual_clues\": \"页面展示多个联合会员套餐选项，每个包含平台Logo、价格、原价划线及‘立即开通’按钮；顶部有促销标签如‘限时3.7折’；中部有‘猜你喜欢’推荐模块；底部有年终福利横幅。\"\n}"
+        }
+      ],
+      "sample_nodes": [
+        {
+          "node_id": "4454F65660E39BFC86D793410E94BFD2",
+          "image": "C:\\Projects\\AndroidTaskAutomation\\3_context_summarization\\utg\\NetEase Cloud Music\\states\\1576A499AEA07B66C9BDBA5CE8EC597A.jpeg",
+          "description": "{\n  \"page_title\": \"联合会员专区\",\n  \"primary_function\": \"Purchase联合会员套餐\",\n  \"key_elements\": [\n    \"立即开通\",\n    \"黑胶VIPx芒果TV 联合年卡\",\n    \"黑胶VIPx优酷视频 联合年卡\"\n  ],\n  \"visual_clues\": \"Promotional banners for discounted joint memberships with app logos (Mango TV, Youku) and '立即开通' buttons indicating purchase action.\"\n}"
+        },
+        {
+          "node_id": "AB97229E7648345EB2A17130215146AA",
+          "image": "C:\\Projects\\AndroidTaskAutomation\\3_context_summarization\\utg\\NetEase Cloud Music\\states\\C9B8C0E39E6A138C0548DB8E41C29F79.jpeg",
+          "description": "{\n  \"page_title\": \"联合会员专区\",\n  \"primary_function\": \"购买黑胶VIP联合会员套餐\",\n  \"key_elements\": [\n    \"立即开通\",\n    \"黑胶VIPx芒果TV 联合年卡\",\n    \"黑胶VIPx优酷视频 联合年卡\"\n  ],\n  \"visual_clues\": \"页面顶部显示‘联合会员专区’标题，下方有多个应用图标（如芒果TV、优酷）与‘黑胶VIP’组合的促销卡片，每个卡片包含价格和‘立即开通’按钮。顶部状态栏显示电池电量100%和时间16:54。\"\n}"
+        },
+        {
+          "node_id": "EC7A951BF8550E173D756B3B096C62A9",
+          "image": "C:\\Projects\\AndroidTaskAutomation\\3_context_summarization\\utg\\NetEase Cloud Music\\states\\E84C35D2CBA87657037F9D3CBC228789.jpeg",
+        }
+      ]
+    },
+    "llm_summary": {
+      "cluster_overall_function": "Facilitate the discovery and purchase of bundled VIP membership packages across multiple entertainment platforms.",
+      
+      "key_functional_capabilities": [
+        "Display discounted bundled VIP membership options (e.g., NetEase Cloud Music + Mango TV, Youku, etc.)",
+        "Enable one-click purchase via prominent \u201c\u5373\u65f6\u5f00\u901a\u201d (Activate Now) buttons",
+        "Present promotional pricing with visual cues such as percentage discounts (e.g., \u201c\u9650\u65f63.7\u6298\u201d) and original price strikethroughs",
+        "Recommend personalized or popular bundles through a \u201c\u731c\u4f60\u559c\u6b22\u201d (You Might Like) module",
+        "Highlight special campaigns or rewards (e.g., \u201c500\u676f\u5976\u8336\u514d\u8d39\u9001\u201d) to incentivize purchases",
+        "Allow browsing of all available joint membership deals via navigation elements like \u201c\u5168\u90e8\u8054\u5408\u4f1a\u5458\u201d"
+      ],
+      
+      "representative_page_types": [
+        "Joint Membership Zone / Special Offer Landing Page (\u201c\u8054\u5408\u4f1a\u5458\u4e13\u533a\u201d)",
+        "Joint Membership Purchase Page (\u201c\u8054\u5408\u4f1a\u5458\u201d) with detailed bundle options and promotions",
+        "Cross-platform Membership Bundle Promotion Pages (featuring partner brand logos and pricing)"
+      ],
+      
+      "likely_user_tasks": [
+        "Compare and select a bundled VIP membership that covers multiple services (music, video streaming, etc.)",
+        "Purchase a cost-effective combined membership to access premium content across platforms",
+        "Take advantage of limited-time discounts or promotional rewards (e.g., free gifts)",
+        "Discover new or recommended membership bundles based on preferences",
+        "Navigate to view all available joint membership options in one place"
+      ],
+      
+      "reasoning_evidence": "{\n  \"entry_point\": \"Page titled \u2018\u8054\u5408\u4f1a\u5458\u4e13\u533a\u2019 with primary function \\\"Purchase bundled VIP memberships across multiple platforms\\\" and key elements including \u2018\u5373\u65f6\u5f00\u901a\u2019, \u2018\u9ed1\u80f6VIPx\u8292\u679cTV \u8054\u5408\u5e74\u5361\u2019, \u2018\u9ed1\u80f6VIPx\u4f18\u9177\u89c6\u9891 \u8054\u5408\u5e74\u5361\u2019. Visual clues mention app icons and branding, confirming cross-platform bundles.\",\n  \"center_point\": \"Page titled \u2018\u8054\u5408\u4f1a\u5458\u2019 focused on \\\"购买或开通联合会员套餐\\\", featuring \u2018\u9650\u65f63.7\u6298\u2019 discount tag, \u2018\u731c\u4f60\u559c\u6b22\u2019 recommendation section, and \u2018\u5002500\u676f\u5976\u8336\u514d\u8d39\u9001\u2019 promotional banner, indicating both purchasing and marketing functions.\",\n  \"sample_nodes\": \"Multiple pages consistently show \u2018\u5373\u65f6\u5f00\u901a\u2019 buttons and bundles combining NetEase\u2019s \u2018\u9ed1\u80f6VIP\u2019 with partners like Mango TV and Youku. Visual descriptions highlight promotional cards with platform logos, prices, strikethrough original prices, and activation buttons. Presence of modules like \u2018\u731c\u4f60\u559c\u6b22\u2019 and banners for gifts (\u2018\u5002500\u676f\u5976\u8336\u514d\u8d39\u9001\u2019) supports personalization and incentive-driven design. Layout described as a \u2018shopping or subscription marketplace\u2019 reinforces the commercial nature of the cluster.\"\n}"
+    }
+  }
+}

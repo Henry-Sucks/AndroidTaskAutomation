@@ -1,10 +1,10 @@
 import json
 from concurrent.futures import ThreadPoolExecutor, as_completed
 
-from loader import ClusterDataLoader
-from sampler import ClusterSampler
-from image_summarizer import ImageSummarizer
-from llm_summarizer import LLMSummarizer
+from .loader import ClusterDataLoader
+from .sampler import ClusterSampler
+from .image_summarizer import ImageSummarizer
+from .llm_summarizer import LLMSummarizer
 
 class ClusterSummaryPipeline:
     def __init__(self, package_name, graph_path):
@@ -103,29 +103,30 @@ class ClusterSummaryPipeline:
         all_summaries = {}
 
         for cid in cluster_ids:
-            # 1. 获取VLM分析结果
-            vlm_results = self.run_single_cluster(str(cid), max_workers)
-            if vlm_results is None:
-                continue
-                
-            all_vlm_results[str(cid)] = vlm_results
+            if cid == "95":
+                # 1. 获取VLM分析结果
+                vlm_results = self.run_single_cluster(str(cid), max_workers)
+                if vlm_results is None:
+                    continue
+                    
+                all_vlm_results[str(cid)] = vlm_results
 
-            # 2. 使用LLM生成摘要
-            llm_summarizer = LLMSummarizer()
-            try:
-                summary = llm_summarizer.summarize_cluster(vlm_results)
-                all_summaries[str(cid)] = {
-                    "vlm_results": vlm_results,
-                    "llm_summary": summary
-                }
-                print(f"\n✓ Cluster {cid} summary generated")
-            except Exception as e:
-                print(f"\n✗ Failed to generate summary for cluster {cid}: {e}")
-                all_summaries[str(cid)] = {
-                    "vlm_results": vlm_results,
-                    "llm_summary": None,
-                    "error": str(e)
-                }
+                # 2. 使用LLM生成摘要
+                llm_summarizer = LLMSummarizer()
+                try:
+                    summary = llm_summarizer.summarize_cluster(vlm_results)
+                    all_summaries[str(cid)] = {
+                        "vlm_results": vlm_results,
+                        "llm_summary": summary
+                    }
+                    print(f"\n✓ Cluster {cid} summary generated")
+                except Exception as e:
+                    print(f"\n✗ Failed to generate summary for cluster {cid}: {e}")
+                    all_summaries[str(cid)] = {
+                        "vlm_results": vlm_results,
+                        "llm_summary": None,
+                        "error": str(e)
+                    }
 
         # 保存VLM结果
         with open(results_output_path, "w", encoding='utf-8') as f:

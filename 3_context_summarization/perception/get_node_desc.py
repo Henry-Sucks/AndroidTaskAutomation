@@ -1,222 +1,229 @@
-"""Generate node descriptions with cluster context.
-
-This script parses `utg_clustered.js` to obtain all nodes along with their
-`cluster_id`, associates each node with a functional cluster summary from
-`cluster_info.json`, builds an English prompt, queries a VLM, and writes
-newline-delimited JSON objects to `node_desc.jsonl`:
-
-{
-  "node_id": ..., 
-  "description": ..., 
-  "cluster_id": ..., 
-  "image": ..., 
-  "xml": ...
-}
-
-Assumptions:
-- `utg_clustered.js` uses JSON-like objects for `var nodes = [ ... ];`.
-- Images reside either in `<UTG_DIR>/screenshot/` or directly in `<UTG_DIR>`.
-- XML files reside either in `<UTG_DIR>/xml/` or directly in `<UTG_DIR>`.
-- Cluster summaries (if present) are stored in `cluster_info.json` under
-  `clusters[cluster_id]['summary']` potentially as a fenced JSON block.
-
-If a cluster has no summary, a placeholder is used. If an image file is
-missing, the description will record the absence and skip the VLM call.
-"""
-
 import os
 import re
 import json
 import sys
 from typing import Dict, List, Any
 
+from PIL import Image, ImageDraw
+from tqdm import tqdm
+
 current_path = os.getcwd()
 sys.path.append(current_path)
 
-from utils import load_json  # Provided by existing project
-from clients.vlm_client import VLMClient  # VLM client
-from tqdm import tqdm
-
-UTG_DIR_DEFAULT = os.path.join(
-    os.path.dirname(__file__), '..', 'utg', 'NetEase Cloud Music'
-)
-
-UTG_CLUSTERED_FILENAME = 'utg_clustered.js'
-CLUSTER_INFO_FILENAME = 'cluster_info.json'
-OUTPUT_JSONL = 'node_desc.jsonl'
+from utils import load_json
+from clients.vlm_client import VLMClient
 
 
-def load_cluster_summaries(cluster_info_path: str) -> Dict[str, str]:
-    data = load_json(cluster_info_path)
-    summaries: Dict[str, str] = {}
-    clusters = data.get('clusters', {})
-    for cid, cobj in clusters.items():
-        raw = cobj.get('summary')
-        if not raw:
-            summaries[cid] = 'No functional summary available.'
-            continue
-        # Extract fenced JSON if present
-        match = re.search(r'```json\s*(\{.*?\})\s*```', raw, re.DOTALL)
-        summary_text = ''
-        if match:
-            block = match.group(1)
-            try:
-                parsed = json.loads(block)
-                overall = parsed.get('cluster_overall_function')
-                caps = parsed.get('key_functional_capabilities', [])
-                parts = []
-                if overall:
-                    parts.append(f"Overall function: {overall}.")
-                if caps:
-                    parts.append("Key capabilities: " + '; '.join(caps))
-                summary_text = ' '.join(parts) if parts else block
-            except Exception:
-                summary_text = raw.replace('\n', ' ').strip()
-        else:
-            summary_text = raw.replace('\n', ' ').strip()
-        summaries[cid] = summary_text or 'No functional summary available.'
-    return summaries
+# ------------------------------------------------------------
+# Helper: draw bboxes & merge into one image
+# ------------------------------------------------------------
+def make_edge_img(from_img_path, to_img_path, bboxes, save_path):
+    combined_images = []
+
+    for bbox in bboxes:
+        from_img = Image.open(from_img_path)
+        draw = ImageDraw.Draw(from_img)
+        draw.rectangle(bbox, outline="red", width=3)
+        combined_images.append(from_img)
+
+    combined_images.append(Image.open(to_img_path))
+
+    total_width = sum(img.size[0] for img in combined_images)
+    max_height = max(img.size[1] for img in combined_images)
+
+    edge_img = Image.new("RGB", (total_width, max_height), (255, 255, 255))
+
+    current_x = 0
+    for img in combined_images:
+        edge_img.paste(img, (current_x, 0))
+        current_x += img.size[0]
+
+    edge_img.save(save_path)
+    return save_path
 
 
-def parse_nodes(utg_clustered_path: str) -> List[Dict[str, Any]]:
-    text = open(utg_clustered_path, 'r', encoding='utf-8').read()
-    # Capture content between var nodes = [ and the closing ];
-    match = re.search(r'var\s+nodes\s*=\s*\[(.*?)\]\s*;', text, re.DOTALL)
-    if not match:
-        raise ValueError('Could not locate nodes array in utg_clustered.js')
-    array_body = match.group(1)
-    # Remove trailing commas after last object (defensive)
-    array_body = re.sub(r',\s*$', '', array_body.strip())
-    json_text = '[' + array_body + ']'
-    try:
-        return json.loads(json_text)
-    except json.JSONDecodeError:
-        # Fallback: extract each object manually
-        objs = []
-        for obj_match in re.finditer(r'\{.*?\}', array_body, re.DOTALL):
-            obj_text = obj_match.group(0)
-            # Attempt to coerce to JSON by removing trailing commas within keys
-            # Basic cleanup (no comments expected)
-            try:
-                objs.append(json.loads(obj_text))
-            except Exception:
-                continue
-        if not objs:
-            raise
-        return objs
+# ------------------------------------------------------------
+# Prompt builder (your version + bbox context)
+# ------------------------------------------------------------
+def build_edge_prompt(cluster_context, action_types, edge_type, bboxes, other_cluster_context=None):
+    """
+    edge_type: "intra" or "inter"
+    """
 
+    bbox_context = (
+        f"\nThe transition was triggered by user interaction at the following screen positions:\n{bboxes}\n"
+        if bboxes else "\n(No bounding box interaction data provided.)\n"
+    )
 
-def build_prompt(cluster_id: str, cluster_summary: str) -> str:
-    return f"""You are an accessibility-oriented AI assistant describing a mobile app screen.
+    if edge_type == "intra":
+        edge_type_instruction = """
+This transition occurs *within the same cluster*. Interpret the action as a **local interaction**:
+- revealing details, switching a tab, opening a sub-view
+- scrolling or layout adjustment
+- expanding or collapsing UI areas
+Do NOT describe this as switching to a new functional module.
+"""
+    else:
+        edge_type_instruction = f"""
+This transition goes *across clusters*. User is moving to a **different functional area**.
 
-Additional context:
-This screen belongs to a functional group (cluster {cluster_id}) whose overall purpose can be summarized as:
-"{cluster_summary}"
-Use this information only to understand the general function of the page, but base your description strictly on what is visually present in the screenshot. Do not invent UI elements or actions that are not visible.
+Source cluster context:
+{cluster_context}
 
-Task:
-Describe the screenshot in three sections (Top, Middle, Bottom). Identify and list all interactive UI elements (buttons, tabs, lists, input fields, sliders, actionable icons). Do NOT describe the status bar (time, battery, network). Avoid hallucination and remain faithful to the screenshot.
+Destination cluster context:
+{other_cluster_context}
 
-Finally, provide ONE concise sentence that best summarizes the screen’s core purpose, informed by both the visible UI and the functional theme of its cluster.
-
-Output Format:
-Top: <text>
-Middle: <text>
-Bottom: <text>
-Overall: <one concise sentence>
+Describe it as a major functional jump, not a local UI change.
 """
 
+    return {
+        "role": "system",
+        "content": [{
+            "text": f"""
+You are an AI assistant describing a UI transition caused by user interaction.
 
-def extract_structured_sections(raw: str) -> Dict[str, str]:
-    # Normalize separators
-    cleaned = raw.replace('\r', '')
-    pattern_map = {
-        'top': r'Top\s*:\s*(.*?)\nMiddle\s*:',
-        'middle': r'Middle\s*:\s*(.*?)\nBottom\s*:',
-        'bottom': r'Bottom\s*:\s*(.*?)\nOverall\s*:',
-        'overall': r'Overall\s*:\s*(.*)'
+Your output: ONE concise English sentence about the functional meaning of the transition.
+
+Action types: {action_types}
+Bounding box interaction info:
+{bbox_context}
+
+--- Instructions ---
+{edge_type_instruction}
+
+--- Cluster Context ---
+{cluster_context}
+"""
+        }]
     }
-    result = {}
-    for key, pat in pattern_map.items():
-        try:
-            m = re.search(pat, cleaned, re.DOTALL)
-            result[key] = (m.group(1).strip() if m else '')
-        except Exception:
-            result[key] = ''
-    return result
 
 
-def describe_node(image_path: str, prompt: str) -> str:
-    if not os.path.exists(image_path):
-        return f"Image not found at {image_path}."
+def extract_cluster_context(cluster_id, cluster_data):
+    ctx = []
+
+    llm_summary = cluster_data.get("llm_summary", {})
+    if llm_summary:
+        ctx.append(f"Cluster {cluster_id} overall function: {llm_summary.get('cluster_overall_function', '')}")
+
+        if "key_functional_capabilities" in llm_summary:
+            ctx.append("Key capabilities:\n- " + "\n- ".join(llm_summary["key_functional_capabilities"]))
+
+        if "representative_page_types" in llm_summary:
+            ctx.append("Representative page types:\n- " + "\n- ".join(llm_summary["representative_page_types"]))
+
+    return "\n".join(ctx) if ctx else f"(Cluster {cluster_id} has no summary.)"
+
+
+# ------------------------------------------------------------
+# VLM call
+# ------------------------------------------------------------
+def run_vlm(prompt, image_path):
     client = VLMClient()
-    try:
-        resp = client.run(prompt=prompt, image_url=image_path, enable_thinking=False)
-        # VLMClient.run returns a dict with key 'content'
-        content = resp.get('content', '') if isinstance(resp, dict) else str(resp)
-        return content
-    except Exception as e:
-        return f"VLM client failed: {e}"
+    resp = client.run(prompt=prompt, image_url=image_path, enable_thinking=False)
+    return resp.get("content", "")
 
 
-def main(utg_dir: str):
-    utg_clustered_path = os.path.join(utg_dir, UTG_CLUSTERED_FILENAME)
-    cluster_info_path = os.path.join(utg_dir, CLUSTER_INFO_FILENAME)
-    output_path = os.path.join(utg_dir, OUTPUT_JSONL)
+# ------------------------------------------------------------
+# MAIN LOGIC: Traverse clusters and edges
+# ------------------------------------------------------------
+def traverse_clusters(cluster_info_path, utg_dir):
+    data = load_json(cluster_info_path)
+    output_path = os.path.join(utg_dir, "edge_desc.jsonl")
 
-    cluster_summaries = load_cluster_summaries(cluster_info_path)
-    nodes = parse_nodes(utg_clustered_path)
+    screenshot_dir = os.path.join(utg_dir, "screenshot")
+    os.makedirs(os.path.join(utg_dir, "edge_img"), exist_ok=True)
 
-    screenshot_dir = os.path.join(utg_dir, 'screenshot')
-    xml_dir = os.path.join(utg_dir, 'xml')
+    with open(output_path, "w", encoding="utf-8") as out_f:
 
-    with open(output_path, 'w', encoding='utf-8') as out_f:
-        for node in tqdm(nodes, desc='Describing nodes'):
-            node_id = node.get('id')
-            cluster_id = str(node.get('cluster_id', ''))
-            image_name = node.get('image') or ''
-            xml_name = node.get('xml') or ''
+        for cluster_id, cluster in data.items():
+            print(f"\n===== Processing Cluster {cluster_id} =====")
 
-            # Resolve image path
-            img_path = os.path.join(screenshot_dir, image_name)
-            if not os.path.exists(img_path):
-                img_path = os.path.join(utg_dir, image_name)
+            cluster_context = extract_cluster_context(cluster_id, cluster)
 
-            # Resolve xml path
-            xml_path = os.path.join(xml_dir, xml_name)
-            if not os.path.exists(xml_path):
-                xml_path = os.path.join(utg_dir, xml_name)
+            # =====================================================
+            # 1. INTRA edges
+            # =====================================================
+            for edge in tqdm(cluster.get("edges_inside_cluster", []), desc=f"Intra edges C{cluster_id}"):
 
-            cluster_summary = cluster_summaries.get(cluster_id, 'No functional summary available.')
-            prompt = build_prompt(cluster_id, cluster_summary)
-            raw_desc = describe_node(img_path, prompt)
-            sections = extract_structured_sections(raw_desc)
+                from_node = edge["from"]
+                to_node = edge["to"]
+                bboxes = edge.get("bbox", [])
 
-            # Compose final description (fallback if parsing failed)
-            if sections.get('overall') or sections.get('top'):
-                description = json.dumps(sections, ensure_ascii=False)
-            else:
-                description = raw_desc.replace('\n', ' ').strip()
+                from_img = os.path.join(screenshot_dir, f"{from_node}.png")
+                to_img = os.path.join(screenshot_dir, f"{to_node}.png")
 
-            record = {
-                'node_id': node_id,
-                'cluster_id': cluster_id,
-                'image': image_name,
-                'xml': xml_name,
-                'description': description
-            }
-            out_f.write(json.dumps(record, ensure_ascii=False) + '\n')
+                edge_img_path = os.path.join(utg_dir, "edge_img", f"{from_node}__{to_node}.jpg")
+                make_edge_img(from_img, to_img, bboxes, edge_img_path)
 
-    print(f'Wrote node descriptions to {output_path}')
+                prompt = build_edge_prompt(
+                    cluster_context=cluster_context,
+                    action_types=edge.get("action_types", []),
+                    edge_type="intra",
+                    bboxes=bboxes,
+                )
+
+                desc = run_vlm(prompt, edge_img_path)
+
+                out_f.write(json.dumps({
+                    "type": "intra",
+                    "cluster_id": cluster_id,
+                    "from": from_node,
+                    "to": to_node,
+                    "action_types": edge.get("action_types", []),
+                    "bboxes": bboxes,
+                    "edge_img": edge_img_path,
+                    "description": desc
+                }, ensure_ascii=False) + "\n")
+
+            # =====================================================
+            # 2. INTER edges
+            # =====================================================
+            for group in cluster.get("edges_from_other_clusters", []):
+                from_cluster_id = group["from_cluster_id"]
+                other_cluster = data.get(from_cluster_id, {})
+                other_context = extract_cluster_context(from_cluster_id, other_cluster)
+
+                for edge in tqdm(group["edges"], desc=f"Inter edges C{from_cluster_id}->{cluster_id}"):
+
+                    from_node = edge["from"]
+                    to_node = edge["to"]
+                    bboxes = edge.get("bbox", [])
+
+                    from_img = os.path.join(screenshot_dir, f"{from_node}.png")
+                    to_img = os.path.join(screenshot_dir, f"{to_node}.png")
+
+                    edge_img_path = os.path.join(utg_dir, "edge_img", f"{from_node}__{to_node}.jpg")
+                    make_edge_img(from_img, to_img, bboxes, edge_img_path)
+
+                    prompt = build_edge_prompt(
+                        cluster_context=cluster_context,
+                        action_types=edge.get("action_types", []),
+                        edge_type="inter",
+                        bboxes=bboxes,
+                        other_cluster_context=other_context,
+                    )
+
+                    desc = run_vlm(prompt, edge_img_path)
+
+                    out_f.write(json.dumps({
+                        "type": "inter",
+                        "from_cluster": from_cluster_id,
+                        "to_cluster": cluster_id,
+                        "from": from_node,
+                        "to": to_node,
+                        "action_types": edge.get("action_types", []),
+                        "bboxes": bboxes,
+                        "edge_img": edge_img_path,
+                        "description": desc
+                    }, ensure_ascii=False) + "\n")
+
+    print(f"\n=== Finished. Edge descriptions saved to {output_path} ===")
 
 
-if __name__ == '__main__':
-    import argparse
-    parser = argparse.ArgumentParser(description='Generate node descriptions with cluster context (JSONL).')
-    parser.add_argument('--utg_dir', default=UTG_DIR_DEFAULT, help='Path to UTG directory containing utg_clustered.js and cluster_info.json')
-    args = parser.parse_args()
-    main(os.path.abspath(args.utg_dir))
+if __name__ == "__main__":
+    # Example:
+    # utg_dir = "/path/to/utg/NetEase Cloud Music"
+    utg_dir = "./utg"  # modify for your directory
+    cluster_info_path = os.path.join(utg_dir, "cluster_info.json")
 
-
-
-
+    traverse_clusters(cluster_info_path, utg_dir)
