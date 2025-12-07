@@ -30,7 +30,7 @@ def load_json(filename, encoding='utf-8'):
     with open(filename, "r", encoding=encoding) as f:
         return json.load(f)
 
-def save_json(data, filename, encoding="utf-8", save_pretty=False, sort_keys=False, indent=None):
+def save_json(data, filename, encoding="utf-8", save_pretty=True, sort_keys=False, indent=None):
     # 若需要“漂亮打印”，默认使用 4 空格；也可由调用方自定义 indent
     use_indent = 4 if save_pretty else indent
     with open(filename, "w", encoding=encoding) as f:

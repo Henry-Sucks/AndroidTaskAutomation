@@ -25,6 +25,79 @@ import os
 import re
 from collections import defaultdict
 
+def get_widget_bbox_map(nodes):
+    """return all widgets with bounding boxes"""
+    widget_bbox_map = {}
+    for node in nodes.values():
+        exact_scene = node["exactScenes"][0]
+        for widget_id, widget_info in exact_scene["widgetList"].items():
+            if widget_id in widget_bbox_map:
+                continue
+            bounds = widget_info['bounds'].replace('][', ',').replace('[', '').replace(']', '')
+            bbox = list(map(int, bounds.split(',')))
+            widget_bbox_map[widget_id] = bbox
+    return widget_bbox_map
+
+
+def get_action_edge_map(edges):
+    """mapping actionId → edge.id"""
+    action_edge_map = {}
+    for edge in edges:
+        for event in edge['events']:
+            action_edge_map[event['actionId']] = edge['id']
+    return action_edge_map
+
+
+def build_enhanced_edge_dict(nodes, raw_edges):
+    """
+    Assemble complete edge dict including bboxes & action types
+    return {actionId: {...}}
+    """
+    widget_bbox_map = get_widget_bbox_map(nodes)
+    action_edge_map = get_action_edge_map(raw_edges)
+
+    enhanced_edges = {}
+
+    for node in nodes.values():
+        exact_scene = node["exactScenes"][0]
+        for scene_action in exact_scene["sceneActionList"]:
+            action_id = scene_action['actionId']
+            if action_id not in action_edge_map:
+                continue
+            
+            edge_id = action_edge_map[action_id]
+            from_node, to_node = edge_id.split('#')
+
+            bboxes = []
+            action_types = []
+
+            try:
+                for action in scene_action['actionList']:
+                    t = action['action'].lower()
+                    # swipe type
+                    if t == "swipe":
+                        t = t + " " + action['swipeType'].lower().replace("swipe", "")
+                    action_types.append(t)
+
+                    widget_id = action['widgetId']
+                    bbox = widget_bbox_map.get(widget_id)
+                    if bbox:
+                        bboxes.append(bbox)
+
+                enhanced_edges[action_id] = {
+                    "id": edge_id,
+                    "bboxes": bboxes,
+                    "action_types": action_types,
+                    "from": from_node,
+                    "to": to_node
+                }
+            except:
+                continue
+
+    return enhanced_edges
+
+
+
 def convert_kgrag_to_utg(input_folder, package_name):
     """
     将KG-RAG JSON结果转换为UTG.js格式
@@ -73,23 +146,22 @@ def convert_kgrag_to_utg(input_folder, package_name):
         })
     
     # 生成边列表
+    # ---- Enhanced edge generation ----
+    print("Building enhanced edges...")
+
+    enhanced_edge_dict = build_enhanced_edge_dict(data["nodes"], data["edges"])
+
     edges = []
     edge_counter = 1
-    
-    for edge in data.get("edges", []):
-        from_node = edge.get("from", None)
-        to_node = edge.get("to", None)
-        
-        edge_id = f"{from_node}-->{to_node}"
-        
-        # # 生成原始动作描述
-        # raw_action = generate_raw_action(event, scene_mapping.get(from_node, {}).get("scene_data", {}))
-        
+
+    for action_id, e in enhanced_edge_dict.items():
         edges.append({
-            "id": edge_id,
-            "step": edge_counter + 1,  # 边步骤从2开始
-            "from": from_node,
-            "to": to_node,
+            "id": e["id"],
+            "step": edge_counter + 1,
+            "bboxes": e["bboxes"],
+            "action_types": e["action_types"],
+            "from": e["from"],
+            "to": e["to"]
         })
         edge_counter += 1
     
@@ -116,6 +188,8 @@ def convert_kgrag_to_utg(input_folder, package_name):
             f.write(f'    step: {edge["step"]},\n')
             f.write(f'    from: "{edge["from"]}",\n')
             f.write(f'    to: "{edge["to"]}",\n')
+            f.write(f'    bboxes: {json.dumps(edge["bboxes"])},\n')
+            f.write(f'    action_types: {json.dumps(edge["action_types"])}\n')
             f.write("  }")
             if i < len(edges) - 1:
                 f.write(",")
@@ -213,6 +287,6 @@ def main():
 
 if __name__ == "__main__":
     # 示例用法（取消注释以直接运行）
-    input_folder = "C:\\Projects\\AndroidTaskAutomation\\1_exploration\\results\\com.tencent.hm.qqmusic"
-    package_name = "com.tencent.hm.qqmusic"
+    input_folder = "C:\\Projects\\AndroidTaskAutomation\\1_exploration\\results\\NetEase Cloud Music"
+    package_name = "com.netease.cloudmusic"
     convert_kgrag_to_utg(input_folder, package_name)

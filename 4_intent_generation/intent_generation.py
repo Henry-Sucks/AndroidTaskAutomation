@@ -139,37 +139,32 @@ def run_intent_generation(
             return node_id, None, f"[Error] {e}"
 
     # 3) 并行处理当前 cluster 的 nodes
-    def _parallel_process_cluster(
-        cluster_id,
-        cluster_data,
-        package_name,
-        bbox_dict,
-        max_workers,
-        node_map,            # 外层闭包变量：{node_id: node}
-        results,             # Manager().dict() 或普通 dict（见下）
-    ):
+    def _parallel_process_cluster(cluster_id, cluster_data, package_name, bbox_dict, max_workers, node_map, results):
         node_ids = cluster_data.get("nodes", [])
-        tasks = [
-            (nid, cluster_id, cluster_data, package_name, bbox_dict) for nid in node_ids
-        ]
+        tasks = [(nid, cluster_id, cluster_data, package_name, bbox_dict) for nid in node_ids]
 
-        # 使用线程池并行
         with ThreadPoolExecutor(
             max_workers=max_workers, initializer=_init_worker, initargs=(vlm,)
         ) as pool:
             futures = {pool.submit(_process_node, t): t[0] for t in tasks}
-            for fut in tqdm(as_completed(futures), total=len(tasks), desc=f"Cluster {cluster_id}", unit="node"):
-                node_id, intent_text, err = fut.result()
+            pbar = tqdm(total=len(futures), desc=f"Cluster {cluster_id}", unit="node")
+            for future in as_completed(futures, timeout=60):  # 迭代器层面的超时
+                try:
+                    node_id, intent_text, err = future.result(timeout=60)  # 任务层面的超时
+                except Exception as e:
+                    node_id = futures[future]
+                    err = str(e)
+                    intent_text = None
                 if err:
-                    print(err)
-                    continue
-                # 线程安全写入
-                if isinstance(results, dict):
-                    # 普通 dict：在主进程合并（推荐，避免锁竞争）
+                    tqdm.write(f"[WARN] node={node_id} error: {err}")
+                else:
+                    # 写入共享 results（主进程合并）
                     results.setdefault(cluster_id, {})[node_id] = {
                         "intent": intent_text,
                         "image": node_map[node_id].get("image"),
                     }
+                pbar.update(1)
+            pbar.close()
 
     """
     主流程：对每个 cluster 内部的 node 生成 intent。
@@ -208,19 +203,34 @@ def run_intent_generation(
             results=results,  # 传普通 dict
         )
 
-    save_json(results, output_path)
+    final_output = build_final_output(results)
+    save_json(final_output, output_path)
     print(f"✔ Intent generation completed → {output_path}")
 
-
+def build_final_output(per_cluster):
+    final = []
+    for cluster_id, node_dict in per_cluster.items():
+        nodes_out = []
+        for nid, item in node_dict.items():
+            intent_raw = item.get("intent")
+            # 保证 intents 为列表
+            if isinstance(intent_raw, list):
+                intents = [str(x).strip() for x in intent_raw if str(x).strip()]
+            else:
+                intents = [str(intent_raw).strip()] if str(intent_raw).strip() else []
+            nodes_out.append({
+                "node_id": str(nid),
+                "intents": intents
+            })
+        final.append({
+            "cluster_id": str(cluster_id),
+            "nodes": nodes_out
+        })
+    return final
 
 if __name__ == "__main__":
     package_name = "com.netease.cloudmusic"
     utg_root_path = "C:\\Projects\\AndroidTaskAutomation\\4_intent_generation\\utg\\NetEase Cloud Music"
-
-    # Example bbox_dict
-    # bbox_dict = {
-    #     "NODE_ID_001": [[20,30,200,260],[300,400,500,700]]
-    # }
 
     run_intent_generation(
         package_name,

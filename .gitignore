@@ -3,6 +3,9 @@
 3_context_summarization/utg
 3_context_summarization/clients/config.py
 
+4_intent_generation/utg
+4_intent_generation/clients/config.py
+
 ref
 
 comparison

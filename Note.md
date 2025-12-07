@@ -292,8 +292,17 @@ Action: 如果不匹配，先在序列头部插入一段“归位（Reset/Naviga
 
 
 
+# 2025/11/30
+
+给自己留了一些坑：没有处理好原UTG中的重点、重边
+
+我想干什么？写出edge_desc!
+应该很简单：根据utg.js中的内容，构造
 
 
+intent生成阶段
+KG-RAG的工作似乎只是分析当前页面
 
 
-
+intent generation
+修改：对每个node：生成intent-页面内容-页面坐标键值对（是否需要bbox的context？大模型能否做到这一点？是否需要辅助？）
