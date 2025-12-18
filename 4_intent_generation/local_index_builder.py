@@ -18,6 +18,9 @@ from clients.vlm_client import VLMClient
 
 class LocalIndexBuilder:
     def __init__(self, utg_folder_path):
+        # 保存utg文件夹路径
+        self.utg_folder_path = utg_folder_path
+        
         # 构建文件路径
         cluster_info_path = os.path.join(utg_folder_path, "cluster_info.json")
         utg_path = os.path.join(utg_folder_path, "utg_clustered.js")
@@ -286,7 +289,7 @@ class LocalIndexBuilder:
                 node_info = self.nodes.get(node_id, {})
                 image_name = node_info.get('image', '')
                 if image_name:
-                    image_path = os.path.join("utg/NetEase Cloud Music/states", image_name)
+                    image_path = os.path.join(self.utg_folder_path, "states", image_name)
                     if os.path.exists(image_path):
                         return image_path
                 return None
@@ -436,7 +439,7 @@ Provide only the JSON object, no additional text."""
             from_image_name = from_node_info.get('image', '')
             if from_image_name:
                 # 图片在states目录下
-                from_image_path = os.path.join("utg/NetEase Cloud Music/states", from_image_name)
+                from_image_path = os.path.join(self.utg_folder_path, "states", from_image_name)
                 if not os.path.exists(from_image_path):
                     from_image_path = None
             
@@ -445,7 +448,7 @@ Provide only the JSON object, no additional text."""
             to_image_name = to_node_info.get('image', '')
             if to_image_name:
                 # 图片在states目录下
-                to_image_path = os.path.join("utg/NetEase Cloud Music/states", to_image_name)
+                to_image_path = os.path.join(self.utg_folder_path, "states", to_image_name)
                 if not os.path.exists(to_image_path):
                     to_image_path = None
             
@@ -778,6 +781,8 @@ if __name__ == "__main__":
     for cluster_id, tasks in local_index.items():
         print(f"Cluster {cluster_id}: {len(tasks)} atomic tasks")
     
-    # 可选：保存结果
-    with open("local_index_output.json", "w", encoding="utf-8") as f:
+    # 可选：保存结果到utg文件夹内
+    output_path = os.path.join(builder.utg_folder_path, "local_index_output.json")
+    with open(output_path, "w", encoding="utf-8") as f:
         json.dump(local_index, f, indent=2, ensure_ascii=False)
+    print(f"Local index saved to: {output_path}")
