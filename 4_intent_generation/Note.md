@@ -133,3 +133,49 @@ def generate_intra_cluster_paths(utg_graph, clusters, intent_goal):
 输入：自动化探索工具得到的UTG，节点（状态）包含对应的截图/XML，边（操作）包含操作类型、操作的元素（图中的坐标/XML元素）
 原先的输出是：将utg中每个节点进行分簇，每个节点增添一个属性cluster_id
 但是考虑节点的重复探索、状态爆炸等因素，在之后是否要添加更高一步的合并/抽象？
+
+
+
+
+
+# 2025/12/18
+
+Local Index的结构化形式：
+```py
+LocalIndex = {
+    cluster_id: {
+        "summary": "簇功能描述",
+        "atomic_tasks": [
+            {
+                "intent": "点击冬眠按钮",
+                "action_sequence": [
+                    {
+                        "node_id": "A1C5F507783DEBFC9DA68759B6C2EAD4",
+                        "element": {
+                            "xpath": "...",
+                            "bounds": "[696,654][864,744]",
+                            "text": "冬眠",
+                            "type": "android.view.ViewGroup"
+                        },
+                        "action_type": "CLICK"
+                    }
+                ],
+                "preconditions": [
+                    "当前在页面 X",
+                    "按钮可见"
+                ],
+                "postconditions": [
+                    "页面跳转到 Y"
+                ],
+                "confidence": 0.95  # 可选，用于排序候选
+            },
+            ...
+        ]
+    },
+    ...
+}
+```
+
+
+ok，任务已经定好，开始实现！
+
