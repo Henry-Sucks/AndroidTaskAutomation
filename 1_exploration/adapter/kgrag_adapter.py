@@ -24,6 +24,7 @@ import json
 import os
 import re
 from collections import defaultdict
+import hashlib
 
 def get_widget_bbox_map(nodes):
     """return all widgets with bounding boxes"""
@@ -37,6 +38,30 @@ def get_widget_bbox_map(nodes):
             bbox = list(map(int, bounds.split(',')))
             widget_bbox_map[widget_id] = bbox
     return widget_bbox_map
+
+
+def get_widget_info_map(nodes):
+    """return all widgets with full info needed for edge attributes"""
+    widget_info_map = {}
+    for node in nodes.values():
+        exact_scene = node["exactScenes"][0]
+        for widget_id, widget_info in exact_scene["widgetList"].items():
+            if widget_id in widget_info_map:
+                continue
+            # Normalize and pick expected fields with safe defaults
+            info = {
+                "bounds": widget_info.get("bounds", ""),
+                "isNew": widget_info.get("isNew", False),
+                "isWidget": widget_info.get("isWidget", True),
+                "isMarked": widget_info.get("isMarked", False),
+                "xpath": widget_info.get("xpath", ""),
+                "actions": widget_info.get("actions", []),
+                "text": widget_info.get("text", ""),
+                # Some JSONs may use different keys for type
+                "type": widget_info.get("type", widget_info.get("typeName", "")),
+            }
+            widget_info_map[widget_id] = info
+    return widget_info_map
 
 
 def get_action_edge_map(edges):
@@ -54,6 +79,7 @@ def build_enhanced_edge_dict(nodes, raw_edges):
     return {actionId: {...}}
     """
     widget_bbox_map = get_widget_bbox_map(nodes)
+    widget_info_map = get_widget_info_map(nodes)
     action_edge_map = get_action_edge_map(raw_edges)
 
     enhanced_edges = {}
@@ -70,6 +96,15 @@ def build_enhanced_edge_dict(nodes, raw_edges):
 
             bboxes = []
             action_types = []
+            # New attributes (derived from the first actionable widget if present)
+            bounds_str = ""
+            is_new = False
+            is_widget = True
+            is_marked = False
+            xpath = ""
+            actions_list = []
+            text_val = ""
+            type_val = ""
 
             try:
                 for action in scene_action['actionList']:
@@ -84,13 +119,37 @@ def build_enhanced_edge_dict(nodes, raw_edges):
                     if bbox:
                         bboxes.append(bbox)
 
-                enhanced_edges[action_id] = {
+                    # Enrich edge attributes from widget info (prefer the first available)
+                    if bounds_str == "" and widget_id in widget_info_map:
+                        info = widget_info_map[widget_id]
+                        bounds_str = info.get("bounds", "")
+                        is_new = info.get("isNew", False)
+                        is_widget = info.get("isWidget", True)
+                        is_marked = info.get("isMarked", False)
+                        xpath = info.get("xpath", "")
+                        actions_list = info.get("actions", []) or [action.get('action', '').upper()] if action.get('action') else []
+                        text_val = info.get("text", "")
+                        type_val = info.get("type", "")
+
+                edge_obj = {
                     "id": edge_id,
                     "bboxes": bboxes,
                     "action_types": action_types,
                     "from": from_node,
-                    "to": to_node
+                    "to": to_node,
+                    # Newly added attributes based on JSON
+                    "bounds": bounds_str,
+                    "isNew": is_new,
+                    "isWidget": is_widget,
+                    "isMarked": is_marked,
+                    "xpath": xpath,
+                    "actions": actions_list,
+                    "text": text_val,
+                    "type": type_val,
                 }
+                # Compute stable hash_id based on all attributes
+                edge_obj["hash_id"] = compute_edge_hash(edge_obj)
+                enhanced_edges[action_id] = edge_obj
             except:
                 continue
 
@@ -157,11 +216,21 @@ def convert_kgrag_to_utg(input_folder, package_name):
     for action_id, e in enhanced_edge_dict.items():
         edges.append({
             "id": e["id"],
+            "hash_id": e.get("hash_id", ""),
             "step": edge_counter + 1,
             "bboxes": e["bboxes"],
             "action_types": e["action_types"],
             "from": e["from"],
-            "to": e["to"]
+            "to": e["to"],
+            # Newly added attributes
+            "bounds": e.get("bounds", ""),
+            "isNew": e.get("isNew", False),
+            "isWidget": e.get("isWidget", True),
+            "isMarked": e.get("isMarked", False),
+            "xpath": e.get("xpath", ""),
+            "actions": e.get("actions", []),
+            "text": e.get("text", ""),
+            "type": e.get("type", "")
         })
         edge_counter += 1
     
@@ -185,16 +254,37 @@ def convert_kgrag_to_utg(input_folder, package_name):
         for i, edge in enumerate(edges):
             f.write("  {\n")
             f.write(f'    id: "{edge["id"]}",\n')
+            f.write(f'    hash_id: "{edge["hash_id"]}",\n')
             f.write(f'    step: {edge["step"]},\n')
             f.write(f'    from: "{edge["from"]}",\n')
             f.write(f'    to: "{edge["to"]}",\n')
             f.write(f'    bboxes: {json.dumps(edge["bboxes"])},\n')
-            f.write(f'    action_types: {json.dumps(edge["action_types"])}\n')
+            f.write(f'    action_types: {json.dumps(edge["action_types"])},\n')
+            # New attributes
+            f.write(f'    bounds: "{edge["bounds"]}",\n')
+            f.write(f'    isNew: {json.dumps(edge["isNew"])},\n')
+            f.write(f'    isWidget: {json.dumps(edge["isWidget"])},\n')
+            f.write(f'    isMarked: {json.dumps(edge["isMarked"])},\n')
+            f.write(f'    xpath: "{edge["xpath"]}",\n')
+            f.write(f'    actions: {json.dumps(edge["actions"])},\n')
+            f.write(f'    text: "{edge["text"]}",\n')
+            f.write(f'    type: "{edge["type"]}"\n')
             f.write("  }")
             if i < len(edges) - 1:
                 f.write(",")
             f.write("\n")
         f.write("];\n")
+
+def compute_edge_hash(edge_obj):
+    """Compute a stable hash id from the edge's attributes.
+    Uses SHA1 over canonical JSON with sorted keys.
+    """
+    # Exclude hash_id itself if present to avoid recursion
+    obj = {k: v for k, v in edge_obj.items() if k != "hash_id"}
+    canonical = json.dumps(obj, ensure_ascii=False, sort_keys=True, separators=(",", ":"))
+    digest = hashlib.sha1(canonical.encode("utf-8")).hexdigest()
+    # Return a short but unique-enough id
+    return digest[:16]
 
 def extract_activity_name(uri):
     """
