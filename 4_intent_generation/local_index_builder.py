@@ -17,7 +17,11 @@ from PIL import Image, ImageDraw
 from clients.vlm_client import VLMClient
 
 class LocalIndexBuilder:
-    def __init__(self, cluster_info_path, utg_path):
+    def __init__(self, utg_folder_path):
+        # 构建文件路径
+        cluster_info_path = os.path.join(utg_folder_path, "cluster_info.json")
+        utg_path = os.path.join(utg_folder_path, "utg_clustered.js")
+        
         # 加载簇信息
         self.cluster_info = self._load_cluster_info(cluster_info_path)
         # 建立节点到簇的映射
@@ -760,8 +764,7 @@ Format your response as a single sentence describing the user's goal or what the
 if __name__ == "__main__":
     # 测试用例
     builder = LocalIndexBuilder(
-        cluster_info_path="utg/NetEase Cloud Music/cluster_info.json",
-        utg_path="utg/NetEase Cloud Music/utg_clustered.js"
+        utg_folder_path="utg/NetEase Cloud Music"
     )
     
     print(f"Loaded {len(builder.nodes)} nodes")
