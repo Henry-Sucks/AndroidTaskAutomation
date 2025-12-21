@@ -279,3 +279,8 @@ ExecutionContext = {
     "completed_subtasks": []
 }
 ```
+
+# 2025/12/21
+
+现在的问题：任务拼接-》成功率取决于pre_condition和post_condition
+可以先不管这些？
