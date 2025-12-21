@@ -1,221 +1,275 @@
 """
 ===========================================================
-Global Index Construction for Cluster-level Task Routing
+Cluster Intent Summarizer
 ===========================================================
 
 目标
 ----
-构建 Global Index，用于支持：
-- 跨功能簇（cluster）的任务路由
-- 长任务（long-horizon task）的高层规划
-- 与 Local Index 协同，实现任务拼接
+从 local_index.json 中提取每个功能簇的意图信息，
+使用大模型生成高层语义描述和支持的用户意图列表。
 
-Global Index 的核心形式是：
-    G = (V_cluster, E_transition)
+输出格式：
+{
+    cluster_id: {
+        "summary": "该功能簇的整体语义描述",
+        "supported_intents": [
+            "高层用户意图1",
+            "高层用户意图2",
+            ...
+        ]
+    }
+}
 
-其中：
-    - V_cluster: 功能簇节点（带语义摘要）
-    - E_transition: 簇间可达关系（带语义/操作摘要）
-
------------------------------------------------------------
-设计原则
---------
-1. Global Index 不关心具体 GUI 操作
-2. 抽象“为什么能跳过去”，而不是“点了哪里”
-3. 支持多入口、多出口、不对称跳转
-4. 为 Planner 提供稳定、低噪声的路由图
 ===========================================================
 """
 
-from typing import List, Dict, Any, Tuple
-from collections import defaultdict
+import json
+import os
+from typing import Dict, List, Any
+from concurrent.futures import ThreadPoolExecutor, as_completed
+from clients.llm_client import LLMClient
 
 
-class ClusterNode:
+class ClusterIntentSummarizer:
     """
-    Global Index 中的一个功能簇节点
+    功能簇意图总结器
     """
-
-    def __init__(
-        self,
-        cluster_id: str,
-        summary: str,
-        entry_states: List[str],
-        exit_states: List[str]
-    ):
+    
+    def __init__(self, local_index_path: str):
         """
-        summary:
-            - 该簇的功能语义摘要
-            - 例如：'Wi-Fi settings page'
-
-        entry_states / exit_states:
-            - 用于执行阶段的起点/终点对齐
+        初始化总结器
+        
+        Args:
+            local_index_path: local_index.json文件路径
         """
-        self.cluster_id = cluster_id
-        self.summary = summary
-        self.entry_states = entry_states
-        self.exit_states = exit_states
-
-class ClusterTransition:
-    """
-    簇间的一条有向跳转边
-    """
-
-    def __init__(
-        self,
-        src_cluster: str,
-        dst_cluster: str,
-        trigger_summary: str,
-        support_states: List[Tuple[str, str]]
-    ):
+        self.local_index_path = local_index_path
+        self.llm_client = LLMClient()
+        
+        # 加载local index数据
+        self._load_local_index()
+    
+    def _load_local_index(self):
+        """加载local index数据"""
+        with open(self.local_index_path, 'r', encoding='utf-8') as f:
+            self.local_index = json.load(f)
+    
+    def extract_cluster_intents(self, cluster_id: str, cluster_data: List[dict]) -> List[str]:
         """
-        trigger_summary:
-            - 语义层面的跳转原因
-            - 如：'click network option'
-
-        support_states:
-            - 支撑该跳转的 (src_state, dst_state)
-            - 用于执行时回溯
+        提取指定簇中的所有intent
+        
+        Args:
+            cluster_id: 簇ID
+            cluster_data: 簇数据，包含多个任务
+            
+        Returns:
+            该簇中所有intent的列表
         """
-        self.src_cluster = src_cluster
-        self.dst_cluster = dst_cluster
-        self.trigger_summary = trigger_summary
-        self.support_states = support_states
-
-class GlobalIndex:
-    """
-    全局簇级路由图
-    """
-
-    def __init__(self):
-        self.clusters: Dict[str, ClusterNode] = {}
-        self.transitions: Dict[str, List[ClusterTransition]] = defaultdict(list)
-
-class GlobalIndexBuilder:
-    """
-    从 clustered UTG 构建 Global Index
-    """
-
-    def __init__(self, utg):
+        intents = []
+        for task in cluster_data:
+            intent = task.get('intent', '')
+            if intent:
+                intents.append(intent)
+        
+        return intents
+    
+    def summarize_cluster_function(self, cluster_id: str, intents: List[str]) -> Dict[str, Any]:
         """
-        utg:
-            - nodes: state_id -> UIState
-            - edges: (src_state, action, dst_state)
-            - 每个 state 已标注 cluster_id
+        使用大模型总结功能簇的高层语义和支持的意图
+        
+        Args:
+            cluster_id: 簇ID
+            intents: 该簇中的所有intent列表
+            
+        Returns:
+            包含summary和supported_intents的字典
         """
-        self.utg = utg
+        # 构建LLM分析prompt
+        intents_text = '\n'.join([f"- {intent}" for intent in intents])
+        
+        prompt = f"""Please analyze this mobile app functional cluster and provide a high-level semantic summary.
 
+Cluster ID: {cluster_id}
 
-    def build_cluster_nodes(
-        self,
-        cluster_infos: Dict[str, Dict[str, Any]]
-    ) -> Dict[str, ClusterNode]:
-        """
-        为每个 cluster 构建 ClusterNode
+Detailed Intents in this Cluster:
+{intents_text}
 
-        cluster_infos:
-            - 来自 cluster_info.json
-            - 包含 entry_points / exit_points / summary
-        """
+Based on these specific intents, please provide a JSON response with the following structure:
+{{
+    "summary": "A concise high-level description of what this functional cluster accomplishes from the user's perspective (1-2 sentences in English)",
+    "supported_intents": ["List of 3-6 high-level user intents this cluster can fulfill (in English, focus on user goals rather than technical actions)"]
+}}
 
-        clusters = {}
+Guidelines:
+1. Focus on USER GOALS rather than technical UI actions
+2. Group similar low-level actions into higher-level intents  
+3. Use natural English language that users would understand
+4. Avoid technical jargon like "click", "swipe" - focus on what the user wants to accomplish
+5. The summary should capture the overall purpose of this functional area
+6. Supported intents should be distinct high-level goals
 
-        for cid, info in cluster_infos.items():
-            clusters[cid] = ClusterNode(
-                cluster_id=cid,
-                summary=info.get("summary", ""),
-                entry_states=info.get("entry_points", []),
-                exit_states=info.get("exit_points", [])
+Provide only valid JSON, no additional text:"""
+
+        try:
+            result = self.llm_client.run(
+                prompt=prompt,
+                temperature=0.3,
+                max_tokens=600
             )
-
-        return clusters
+            
+            # 解析LLM返回的JSON
+            content = result.strip()
+            if content.startswith('```json'):
+                content = content[7:]
+            if content.endswith('```'):
+                content = content[:-3]
+            
+            cluster_summary = json.loads(content)
+            
+            return {
+                "summary": cluster_summary.get("summary", f"功能簇 {cluster_id}"),
+                "supported_intents": cluster_summary.get("supported_intents", [])
+            }
+            
+        except Exception as e:
+            print(f"Error summarizing cluster {cluster_id}: {e}")
+            # 提供回退总结
+            return {
+                "summary": f"功能簇 {cluster_id} - 基于 {len(intents)} 个具体操作的功能模块",
+                "supported_intents": [
+                    f"执行簇 {cluster_id} 中的相关功能",
+                    "浏览和交互该功能区域"
+                ]
+            }
     
-    def extract_cross_cluster_edges(self):
+    def summarize_all_clusters(self) -> Dict[str, Dict[str, Any]]:
         """
-        从 UTG 中提取所有跨 cluster 的边
-
-        输出：
-            Dict[(src_cluster, dst_cluster)] -> List[(src_state, action, dst_state)]
+        总结所有功能簇
+        
+        Returns:
+            包含所有簇总结的字典
         """
-
-        cross_edges = defaultdict(list)
-
-        # TODO:
-        # 遍历 utg.edges
-        # 如果 src.cluster_id != dst.cluster_id
-        #   收集该边作为跨簇候选
-
-        return cross_edges
-
-    def summarize_transition(
-        self,
-        edges: List[Tuple[str, Any, str]]
-    ) -> str:
-        """
-        将一组跨簇边抽象为一个跳转语义
-
-        设计思路：
-        - 多条边往往语义等价（如多个按钮都能进入子页）
-        - 抽象成稳定、可泛化的触发描述
-        """
-
-        # TODO:
-        # 1. 利用 action target 的 text / resource-id
-        # 2. 利用 src_state 的 semantic
-        # 3. 可调用 LLM 进行摘要
-
-        return "placeholder_transition"
+        cluster_summaries = {}
+        
+        print(f"Processing {len(self.local_index)} clusters...")
+        
+        # 预处理：提取所有有效的cluster和它们的intents
+        valid_clusters = {}
+        for cluster_id, cluster_data in self.local_index.items():
+            intents = self.extract_cluster_intents(cluster_id, cluster_data)
+            if intents:
+                valid_clusters[cluster_id] = intents
+                print(f"Found {len(intents)} intents in cluster {cluster_id}")
+            else:
+                print(f"No intents found in cluster {cluster_id}, skipping...")
+        
+        print(f"Starting parallel analysis of {len(valid_clusters)} valid clusters...")
+        
+        # 使用ThreadPoolExecutor并行处理cluster语义分析
+        with ThreadPoolExecutor(max_workers=5) as executor:  # 限制并发数量以控制API调用频率
+            # 提交所有任务
+            future_to_cluster = {
+                executor.submit(self.summarize_cluster_function, cluster_id, intents): cluster_id
+                for cluster_id, intents in valid_clusters.items()
+            }
+            
+            # 收集结果
+            for future in as_completed(future_to_cluster):
+                cluster_id = future_to_cluster[future]
+                try:
+                    summary = future.result()
+                    cluster_summaries[cluster_id] = summary
+                    print(f"Completed analysis for cluster {cluster_id}")
+                    print(f"Summary: {summary['summary']}")
+                    print(f"Supported intents: {len(summary['supported_intents'])}")
+                    print("-" * 50)
+                except Exception as e:
+                    print(f"Error analyzing cluster {cluster_id}: {e}")
+                    # 使用fallback信息
+                    intents = valid_clusters[cluster_id]
+                    cluster_summaries[cluster_id] = {
+                        "summary": f"功能簇 {cluster_id} - 基于 {len(intents)} 个具体操作的功能模块",
+                        "supported_intents": [
+                            f"执行簇 {cluster_id} 中的相关功能",
+                            "浏览和交互该功能区域"
+                        ]
+                    }
+        
+        return cluster_summaries
     
-
-    def build_transitions(
-        self,
-        cross_edges
-    ) -> Dict[str, List[ClusterTransition]]:
+    def save_results(self, results: Dict[str, Dict[str, Any]], output_path: str):
         """
-        将跨簇边构建为 Global Index 中的跳转关系
+        保存结果到文件
+        
+        Args:
+            results: 总结结果
+            output_path: 输出文件路径
         """
-
-        transitions = defaultdict(list)
-
-        for (src_c, dst_c), edges in cross_edges.items():
-            summary = self.summarize_transition(edges)
-
-            transitions[src_c].append(
-                ClusterTransition(
-                    src_cluster=src_c,
-                    dst_cluster=dst_c,
-                    trigger_summary=summary,
-                    support_states=[(e[0], e[2]) for e in edges]
-                )
-            )
-
-        return transitions
+        with open(output_path, 'w', encoding='utf-8') as f:
+            json.dump(results, f, indent=2, ensure_ascii=False)
+        
+        print(f"Results saved to: {output_path}")
     
-    def build(
-        self,
-        cluster_infos: Dict[str, Dict[str, Any]]
-    ) -> GlobalIndex:
+    def print_formatted_results(self, results: Dict[str, Dict[str, Any]]):
         """
-        主流程：
-            clustered UTG
-                ↓
-            cluster nodes
-                ↓
-            cross-cluster edges
-                ↓
-            transition abstraction
-                ↓
-            Global Index
+        以指定格式打印结果
+        
+        Args:
+            results: 总结结果
         """
+        print("\n" + "="*60)
+        print("CLUSTER INTENT SUMMARY RESULTS")
+        print("="*60)
+        
+        for cluster_id, cluster_info in results.items():
+            print(f"\n{cluster_id}: {{")
+            print(f'    "summary": "{cluster_info["summary"]}",')
+            print(f'    "supported_intents": [')
+            
+            for intent in cluster_info["supported_intents"]:
+                print(f'        "{intent}",')
+            
+            print(f'    ]')
+            print("}")
 
-        global_index = GlobalIndex()
 
-        global_index.clusters = self.build_cluster_nodes(cluster_infos)
+def main():
+    """主函数"""
+    # 配置路径
+    local_index_path = "utg/NetEase Cloud Music/local_index.json"
+    output_path = "utg/NetEase Cloud Music/global_index.json"
+    
+    # 检查文件是否存在
+    if not os.path.exists(local_index_path):
+        print(f"Error: {local_index_path} not found!")
+        return
+    
+    try:
+        # 创建总结器实例
+        summarizer = ClusterIntentSummarizer(local_index_path)
+        
+        # 生成所有簇的总结
+        results = summarizer.summarize_all_clusters()
+        
+        # 保存结果
+        summarizer.save_results(results, output_path)
+        
+        # 打印格式化结果
+        summarizer.print_formatted_results(results)
+        
+        # 打印统计信息
+        print(f"\n" + "="*60)
+        print("STATISTICS")
+        print("="*60)
+        print(f"Total clusters processed: {len(results)}")
+        total_intents = sum(len(cluster_info['supported_intents']) for cluster_info in results.values())
+        print(f"Total supported intents: {total_intents}")
+        print(f"Average intents per cluster: {total_intents / len(results):.1f}")
+        
+    except Exception as e:
+        print(f"Error: {e}")
+        import traceback
+        traceback.print_exc()
 
-        cross_edges = self.extract_cross_cluster_edges()
-        global_index.transitions = self.build_transitions(cross_edges)
 
-        return global_index
-
-
-
+if __name__ == "__main__":
+    main()

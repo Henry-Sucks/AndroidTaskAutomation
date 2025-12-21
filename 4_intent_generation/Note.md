@@ -177,5 +177,105 @@ LocalIndex = {
 ```
 
 
-ok，任务已经定好，开始实现！
+Global Index的结构化形式：
+感觉还是有些东西不清楚！什么东西不清楚？routing_edges应该有什么语义？subtask_templates应该总结出什么东西？
+```py
+GlobalIndex = {
+    cluster_id: {
+        "summary": "该功能簇的整体语义描述",
+        
+        # 该功能簇可以完成的高层用户意图
+        "supported_intents": [
+            "开启冬眠模式",
+            "修改睡眠设置",
+            "管理电池省电策略"
+        ],
 
+        # 从哪些功能簇可以自然进入当前功能簇
+        "entry_clusters": [
+            "Home",
+            "Settings"
+        ],
+
+        # 执行完当前功能簇后，通常可能前往的功能簇
+        "exit_clusters": [
+            "Home",
+            "Confirmation"
+        ],
+
+        # 功能簇之间的路由语义（簇间边）
+        "routing_edges": [
+            {
+                "from_cluster": "Settings",
+                "to_cluster": "Sleep",
+                "trigger_summary": "点击睡眠相关设置项",
+                "confidence": 0.92
+            }
+        ],
+    },
+    ...
+}
+```
+
+
+RAG阶段：
+
+prompt：用户任务+summary+supported_intents  -> 
+输出：
+
+```
+HighLevelPlan = [
+    {
+        "sub_intent": "打开设置页面",
+        "target_cluster": "Settings"
+    },
+    {
+        "sub_intent": "进入睡眠设置页面",
+        "target_cluster": "Sleep"
+    },
+    {
+        "sub_intent": "开启冬眠模式",
+        "target_cluster": "Sleep"
+    }
+]
+```
+
+利用语义相似性在local index中进行匹配，输出
+
+```
+LowLevelPlan = [
+    {
+        "cluster" : "Settings",
+        "subtask" : "打开设置页面",
+        "action_sequence" : ...
+        "pre_conditions": ...
+        "post_conditions": ...
+    },
+
+    {
+        "cluster" : "Sleep",
+        "subtask" : "进入睡眠设置页面",
+        "action_sequence" : ...
+        "pre_conditions": ...
+        "post_conditions": ...
+    },
+
+    {
+        "cluster" : "Sleep",
+        "subtask" : "开启冬眠模式",
+        "action_sequence" : ...
+        "pre_conditions": ...
+        "post_conditions": ...
+    }
+]
+```
+
+维护一个全局执行上下文：
+```
+ExecutionContext = {
+    "current_cluster": "Home",
+    "current_node": "...",
+    "ui_state": {...},          # 可简化
+    "completed_subtasks": []
+}
+```
