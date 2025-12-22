@@ -212,7 +212,7 @@ class LocalIndexBuilder:
         for cluster_id, cluster in self.cluster_info["clusters"].items():
             # print(f"Processing cluster {cluster_id}...")
             # 可以选择只处理特定簇进行测试
-            if cluster_id == "95":  # 取消注释以只处理特定簇
+            # if cluster_id == "95":  # 取消注释以只处理特定簇
                 # 1. 获取簇内节点和边
                 cluster_nodes = cluster["nodes"]
                 cluster_edges = self.get_edges_in_cluster(cluster_id)
@@ -688,6 +688,16 @@ Format your response as a single sentence describing the user's goal or what the
         以及从目标节点到簇出点的最短路径
         如果有多个，则返回多条路径的数组
         用于原子任务拼接
+        
+        返回格式为包含边详细信息的对象数组:
+        [
+            {
+                "from": "node_id_1",
+                "to": "node_id_2",
+                "possible_actions": [edge_info1, edge_info2, ...]
+            },
+            ...
+        ]
         """
         # 获取cluster_id用于后续边查询
         cluster_id = None
@@ -701,6 +711,54 @@ Format your response as a single sentence describing the user's goal or what the
         
         cluster_edges = self.get_edges_in_cluster(cluster_id)
         
+        # 辅助函数：将节点路径转换为边路径
+        def convert_node_path_to_edge_path(node_path):
+            """将节点路径转换为边路径格式"""
+            if len(node_path) < 2:
+                return []
+            
+            edge_path = []
+            for i in range(len(node_path) - 1):
+                from_node = node_path[i]
+                to_node = node_path[i + 1]
+                
+                # 找到所有从 from_node 到 to_node 的边
+                possible_edges = [
+                    e for e in cluster_edges 
+                    if e["from"] == from_node and e["to"] == to_node
+                ]
+                
+                if possible_edges:
+                    # 构建动作信息
+                    possible_actions = []
+                    for edge in possible_edges:
+                        element_info = {
+                            "xpath": edge.get("xpath", ""),
+                            "bounds": edge.get("bounds", ""),
+                            "text": edge.get("text", ""),
+                            "type": edge.get("type", "")
+                        }
+                        
+                        action_types = edge.get("action_types", [])
+                        if not action_types:
+                            action_types = ["CLICK"]
+                        
+                        for action_type in action_types:
+                            action = {
+                                "node_id": from_node,
+                                "element": element_info,
+                                "action_type": action_type.upper()
+                            }
+                            possible_actions.append(action)
+                    
+                    edge_path.append({
+                        "from": from_node,
+                        "to": to_node,
+                        "possible_actions": possible_actions
+                    })
+            
+            return edge_path
+        
         # 1. 从簇入点到目标节点的路径
         entry_to_target_paths = []
         if entry_points and target_node_id in cluster.get("nodes", []):
@@ -709,14 +767,14 @@ Format your response as a single sentence describing the user's goal or what the
             
             for entry in entry_points:
                 if entry == target_node_id:
-                    entry_to_target_paths.append([entry])
+                    entry_to_target_paths.append([])  # 入点即目标，路径为空
                 else:
                     queue.append((entry, [entry]))
             
             while queue:
                 current_node, path = queue.popleft()
                 if current_node == target_node_id:
-                    entry_to_target_paths.append(path)
+                    entry_to_target_paths.append(convert_node_path_to_edge_path(path))
                     continue
                 if current_node in visited:
                     continue
@@ -738,7 +796,7 @@ Format your response as a single sentence describing the user's goal or what the
             # 检查目标节点是否就是出点
             for exit_point in exit_points:
                 if target_node_id == exit_point:
-                    target_to_exit_paths.append([target_node_id])
+                    target_to_exit_paths.append([])  # 目标即出点，路径为空
             
             # 从目标节点开始BFS到出点
             if target_node_id not in exit_points:
@@ -747,7 +805,7 @@ Format your response as a single sentence describing the user's goal or what the
                 while queue:
                     current_node, path = queue.popleft()
                     if current_node in exit_points:
-                        target_to_exit_paths.append(path)
+                        target_to_exit_paths.append(convert_node_path_to_edge_path(path))
                         continue
                     if current_node in visited:
                         continue
@@ -782,7 +840,7 @@ if __name__ == "__main__":
         print(f"Cluster {cluster_id}: {len(tasks)} atomic tasks")
     
     # 可选：保存结果到utg文件夹内
-    output_path = os.path.join(builder.utg_folder_path, "local_index_output.json")
+    output_path = os.path.join(builder.utg_folder_path, "local_index.json")
     with open(output_path, "w", encoding="utf-8") as f:
         json.dump(local_index, f, indent=2, ensure_ascii=False)
     print(f"Local index saved to: {output_path}")

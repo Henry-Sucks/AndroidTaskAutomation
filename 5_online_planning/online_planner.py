@@ -13,6 +13,7 @@ class SubTask:
         self.cluster_id = cluster_id
         self.sub_task = sub_task
         self.actions: List[Dict[str, Any]] = []
+        self.matched_intent: str = ""
 
 
 class TaskPlan:
@@ -166,6 +167,7 @@ class LocalMatcher:
             matched = self.match_intent(sub_task.cluster_id, sub_task.sub_task)
             if matched:
                 sub_task.actions = matched.get("action_sequence", [])
+                sub_task.matched_intent = matched.get("intent", "")
 
         return task_plan
 
@@ -201,6 +203,33 @@ class TaskPipeline:
         pass
 
 
+class StateAnalyzer:
+    """
+    根据 current_node_id 判断当前所处的语义位置
+    """
+
+    def __init__(self, utg, node_to_cluster):
+        self.utg = utg
+        self.node_to_cluster = node_to_cluster
+
+    def analyze(self, current_node_id: str) -> Dict:
+        """
+        输出当前状态的语义摘要
+        """
+        # TODO:
+        # 1. 获取 cluster_id
+        # 2. 获取该 node 在 cluster 中的角色：
+        #    - entry node?
+        #    - center node?
+        #    - edge node?
+        # 3. 可选：生成 node-level summary（VLM）
+        return {
+            "current_node": current_node_id,
+            "current_cluster": "...",
+            "node_role": "entry / internal / exit"
+        }
+
+
 def _load_global_index(base_dir: str) -> Dict[str, Any]:
     """加载 global_index.json"""
     path = os.path.join(base_dir, "utg", "NetEase Cloud Music", "global_index.json")
@@ -215,7 +244,7 @@ def _load_local_index(base_dir: str) -> Dict[str, Any]:
         return json.load(f)
 
 
-def _print_plan(plan: TaskPlan) -> None:
+def _print_plan(plan: TaskPlan, global_index: Dict[str, Any] | None = None) -> None:
     """打印规划结果，便于快速查看"""
     print(f"Original task: {plan.original_task}")
     if not plan.sub_tasks:
@@ -233,6 +262,39 @@ def _print_plan(plan: TaskPlan) -> None:
         else:
             print("    actions: <empty>")
 
+        if global_index and sub_task.cluster_id in global_index:
+            info = global_index[sub_task.cluster_id]
+            summary = info.get("summary", "")
+            supported_intents = info.get("supported_intents", [])
+            intents_str = "; ".join(supported_intents) if isinstance(supported_intents, list) else str(supported_intents)
+            print(f"    summary: {summary}")
+            print(f"    supported_intents: {intents_str}")
+
+
+def _print_action_plan(plan: TaskPlan) -> None:
+    """打印包含匹配 intent 与动作详情的计划"""
+    print(f"Original task: {plan.original_task}")
+    if not plan.sub_tasks:
+        print("No sub_tasks generated.")
+        return
+    for idx, sub_task in enumerate(plan.sub_tasks, start=1):
+        print(f"[{idx}] cluster_id={sub_task.cluster_id}")
+        print(f"    sub_task: {sub_task.sub_task}")
+        if sub_task.matched_intent:
+            print(f"    matched_intent: {sub_task.matched_intent}")
+        if not sub_task.actions:
+            print("    actions: <empty>")
+            continue
+        print(f"    actions: {len(sub_task.actions)} steps")
+        for a_idx, act in enumerate(sub_task.actions, start=1):
+            action_type = act.get("action_type", "")
+            node_id = act.get("node_id", "")
+            element = act.get("element", {})
+            xpath = element.get("xpath", "")
+            print(f"      ({a_idx}) {action_type} @ {node_id}")
+            if xpath:
+                print(f"           xpath: {xpath}")
+
 
 if __name__ == "__main__":
     # 简单测试：加载 global_index 后调用 GlobalPlanner
@@ -240,13 +302,15 @@ if __name__ == "__main__":
     global_index = _load_global_index(base_dir)
     local_index = _load_local_index(base_dir)
 
-    sample_user_task = "播放推荐歌曲并查看歌曲详情"
+    sample_user_task = "搜索“周杰伦”的歌曲并播放，然后添加到我的收藏夹。"
     planner = GlobalPlanner(global_index)
     plan = planner.plan(sample_user_task)
+
+    _print_plan(plan, global_index)
 
     matcher = LocalMatcher(local_index)
     plan = matcher.enrich_task_plan(plan)
 
-    _print_plan(plan)
+    _print_action_plan(plan)
 
 
