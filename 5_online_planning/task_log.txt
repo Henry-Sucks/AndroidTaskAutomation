@@ -1,0 +1,23 @@
+Original task: 搜索“周杰伦”的歌曲并播放，然后添加到我的收藏夹。
+[1] cluster_id=30
+    sub_task: Search for songs by '周杰伦' within the app.
+    matched_intent: The user is searching for music, artists, or songs within the app by interacting with the search bar.
+    actions: 1 steps
+      (1) CLICK @ C358B79A721B9728C928058B95FA360C
+           xpath: /android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout/androidx.drawerlayout.widget.DrawerLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.view.ViewGroup/androidx.viewpager.widget.ViewPager/androidx.recyclerview.widget.RecyclerView/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout[0]/android.widget.LinearLayout/android.widget.LinearLayout/android.widget.ImageView
+[2] cluster_id=26
+    sub_task: Select and initiate playback of a specific song from the search results.
+    matched_intent: The user is navigating through a playlist to select or view details of a specific song.
+    actions: 1 steps
+      (1) CLICK @ 93274F508507AB30DD95CF4AD31AF119
+           xpath: /android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout[3]/android.widget.FrameLayout/android.view.ViewGroup[0]/androidx.recyclerview.widget.RecyclerView/android.widget.LinearLayout[1]
+[3] cluster_id=75
+    sub_task: Add the currently playing song to your favorites or collection.
+    matched_intent: The user wants to share the currently playing song with friends or other apps.     
+    actions: 1 steps
+      (1) CLICK @ 4CAB0F98A55165DD34B1F8E776E964B3
+           xpath: /android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.view.ViewGroup/androidx.appcompat.widget.LinearLayoutCompat/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.RelativeLayout
+
+
+
+    

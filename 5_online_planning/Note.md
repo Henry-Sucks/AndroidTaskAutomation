@@ -44,3 +44,41 @@ Original task: 搜索“周杰伦”的歌曲并播放，然后添加到我的�
       (1) CLICK @ 4CAB0F98A55165DD34B1F8E776E964B3
            xpath: /android.widget.FrameLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.FrameLayout/android.widget.RelativeLayout/android.view.ViewGroup/androidx.appcompat.widget.LinearLayoutCompat/android.widget.LinearLayout/android.widget.FrameLayout/android.widget.LinearLayout/android.widget.RelativeLayout
 ```
+
+# 2025/12/24
+
+现在的问题：
+1. 喂给大模型的模式：
+
+簇的summary；
+簇中的能完成的子功能；
+
+这样做和KG-RAG有什么区别？
+似乎可以把这个问题放放；
+
+2. 现在的效果极差：
+有两个改进的方向：
+- 最根本的是：修改分簇的算法，得到更精准的算法；
+- 修改总结簇的summary和子任务的prompt，让intent和簇之间的差异更加显著；
+
+
+注意到了：由于先前Node状态的合并，导致许多应该出现新内容的操作最后被判断没有出现新的内容（比如说SWIPE）。需要解决？
+
+
+先给定一个ground_truth吧：
+
+打开弹出搜索框：
+cluster_35_intent_213_The_user_wants_to_search_for_music_or_explore_tren
+cluster_35_intent_66_The_user_wants_to_search_for_music__videos__podcas
+The user is searching for music, artists, or songs within the app by interacting with the search bar.
+
+搜索框到单曲主页
+cluster_35_intent_160_The_user_wants_to_search_for_content_related_to__郑
+
+单曲主页到歌曲页面
+
+歌曲页面到收藏
+
+
+
+
