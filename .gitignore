@@ -1,14 +1,7 @@
 1_exploration/results/
-2_structuring/utg
-3_context_summarization/utg
-3_context_summarization/clients/config.py
 
-4_intent_generation/utg
-4_intent_generation/clients/config.py
-
-
-5_online_planning/clients/config.py
-5_online_planning/utg
+config.py
+utg/
 
 ref
 

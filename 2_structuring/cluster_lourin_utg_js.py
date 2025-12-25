@@ -7,13 +7,21 @@ from collections import defaultdict
 import math
 import re
 import hashlib
+import os
+# 引入 XML 解析库，用于计算 DOM 相似度
+import xml.etree.ElementTree as ET
+# 导入 VLM 客户端
+from clients.vlm_client import VLMClient
 
 class UTGLouvainClustering:
     """
-    基于Louvain算法的UTG聚类系统 - 从utg.js文件读取数据
+    [增强版] 基于Louvain算法的UTG聚类系统
     
-    用于将UI转换图(UTG)进行社区检测和层次聚类，
-    识别功能相关的状态组和导航模式。
+    改进点：
+    1. 混合权重：结合 UI 结构相似度 (DOM) + 交互类型 (Action Type)
+    2. Hub 节点处理：识别并降权通用导航页
+    3. 后处理：递归拆分超大簇，合并微小簇
+    4. VLM 语义修正：基于视觉语言模型的聚类质量优化
     """
     
     def __init__(self, utg_js_path: str):
@@ -59,29 +67,52 @@ class UTGLouvainClustering:
         self.filtered_states: Set[str] = set()  # 被过滤掉的孤立状态
         self.connected_states: Set[str] = set()  # 有连接的状态
         
+        # --- 新增增强配置参数 ---
+        self.config = {
+            # 交互类型权重
+            'weights': {
+                'basic_interaction': 1.0,  # 普通点击
+                'strong_connection': 2.0,  # 列表点击、确认操作 (内容强相关)
+                'weak_connection': 0.2,    # 返回(Back)、侧边栏、底部导航 (通用导航)
+                'scroll': 0.5              # 滑动 (通常是同一页面的延伸)
+            },
+            # DOM 相似度阈值
+            'dom_similarity_threshold': 0.65, # 超过此相似度视为同一界面的微变
+            'dom_weight_bonus': 5.0,          # 高相似度时的权重加成
+            
+            # Hub 节点判定
+            'hub_degree_percentile': 0.95,    # 度数超过 95% 分位数的视为 Hub
+            
+            # 后处理阈值
+            'max_cluster_size': 50,           # 超过此大小尝试拆分
+            'min_cluster_size': 5             # 小于此大小尝试合并
+        }
+
+        # 缓存 Hub 节点列表
+        self.hub_nodes: Set[str] = set()
+        
+        # VLM 客户端
+        self.vlm_client = VLMClient()
+        
         print(f"初始化UTG Louvain聚类器: {self.utg_js_path}")
     
     def load_utg_data(self):
         """
-        从utg.js文件加载UTG数据，构建图结构
-        
-        步骤：
-        1. 解析utg.js文件中的nodes和edges数据
-        2. 构建NetworkX图
-        3. 计算边权重
+        [增强版] 加载数据主流程
         """
         print(f"正在加载UTG数据: {self.utg_js_path}")
-        
-        # 从utg.js文件加载数据
         self._load_from_utg_js()
         
-        # 构建图结构
+        # 1. 构建基础图结构
         self._build_graph()
         
-        # 计算边权重
-        self._calculate_edge_weights()
+        # [新增] 2. 识别 Hub 节点 (导航中心)
+        self._identify_hub_nodes()
         
-        # 过滤孤立状态
+        # [修改] 3. 计算增强型边权重 (核心优化点)
+        self._calculate_hybrid_edge_weights()
+        
+        # 4. 过滤孤立节点
         self.filter_isolated_states()
         
         print(f"UTG加载完成: {len(self.graph.nodes)} 个连通状态, {len(self.graph.edges)} 条转换")
@@ -272,6 +303,197 @@ class UTGLouvainClustering:
         
         return min(similarity_score, 1.0)
     
+    # =========================================================================
+    # 增强功能：Hub节点识别与混合权重计算
+    # =========================================================================
+    
+    def _identify_hub_nodes(self):
+        """
+        [新增] 识别高中心性节点 (Hub Nodes)
+        逻辑：计算 Degree Centrality，找出连接数异常高的节点（如主页、侧边栏根节点）。
+        作用：在后续计算权重时，降低连接到 Hub 节点的边的权重，防止它把无关簇粘在一起。
+        """
+        if not self.graph.nodes():
+            return
+        
+        # 1. 计算所有节点的度 (Degree)
+        degrees = {}
+        for node in self.graph.nodes():
+            degrees[node] = len(list(self.graph.neighbors(node)))
+                
+        degree_values = list(degrees.values())
+        
+        if not degree_values:
+            return
+            
+        # 2. 计算分位数阈值
+        degree_values.sort()
+        percentile_idx = int(len(degree_values) * self.config['hub_degree_percentile'])
+        threshold = degree_values[min(percentile_idx, len(degree_values) - 1)]
+        
+        # 3. 将超过阈值的节点 ID 存入 self.hub_nodes
+        for node, degree in degrees.items():
+            if degree >= threshold:
+                self.hub_nodes.add(node)
+                
+        print(f"识别出 {len(self.hub_nodes)} 个 Hub 节点 (阈值: {threshold})")
+
+    def _calculate_hybrid_edge_weights(self):
+        """
+        [修改] 计算混合权重
+        公式：Weight = (Base_Weight * Interaction_Factor * Hub_Penalty) + DOM_Similarity_Bonus
+        """
+        print("正在计算混合边权重 (Topology + Semantic)...")
+        
+        # 遍历所有边
+        # 注意：这里需要处理 multigraph 的情况，因为两个节点间可能有多种操作
+        # 这里简化逻辑，只取两个节点间最强的那条连接
+        
+        unique_edges = set()
+        for event in self.events_data:
+            u, v = event.get('from', ''), event.get('to', '')
+            if u in self.states_data and v in self.states_data:
+                unique_edges.add((u, v))
+
+        for u, v in unique_edges:
+            # 1. 获取交互类型权重 (Interaction Weight)
+            w_interaction = self._get_interaction_weight(u, v)
+            print(f"Debug: 计算交互权重 {u} -> {v}, 权重: {w_interaction}")
+
+            # 2. 获取 DOM/视觉相似度 (Visual/Structural Similarity)  
+            w_similarity = self._calculate_dom_similarity(u, v)
+
+            # 3. Hub 节点惩罚 (Hub Penalty)
+            # 如果 u 或 v 是 Hub 节点，且操作不是强相关操作，大幅降低权重
+            w_hub_penalty = 1.0
+            if (u in self.hub_nodes or v in self.hub_nodes) and w_interaction < 1.0:
+                w_hub_penalty = 0.1
+
+            # 4. 融合计算
+            final_weight = w_interaction * w_hub_penalty
+            
+            # 如果相似度极高（可能是动态加载了个小图标），给予巨额奖励，强制锁死
+            if w_similarity > self.config['dom_similarity_threshold']:
+                final_weight += self.config['dom_weight_bonus']
+            else:
+                final_weight += w_similarity  # 加上微弱的相似度分
+
+            # 更新图权重
+            if self.weighted_graph.has_edge(u, v):
+                self.weighted_graph[u][v]['weight'] = final_weight
+            else:
+                self.weighted_graph.add_edge(u, v, weight=final_weight)
+
+    def _get_interaction_weight(self, u: str, v: str) -> float:
+        """
+        [新增] 根据操作类型返回权重
+        """
+        # 查找 u->v 的 event 数据
+        for event in self.events_data:
+            if event.get('from') == u and event.get('to') == v:
+                raw_action = event.get('raw_action', '').lower()
+                tag = event.get('tag', '').lower()
+                
+                print(f"Debug: 计算交互权重 {u} -> {v}, 操作: {raw_action}, 标签: {tag}")
+                # 分析操作类型
+                if 'back' in raw_action or 'back' in tag:
+                    return self.config['weights']['weak_connection']
+                elif 'scroll' in raw_action or 'scroll' in tag:
+                    return self.config['weights']['scroll']
+                elif any(keyword in raw_action or keyword in tag 
+                        for keyword in ['list', 'item', 'confirm', 'submit']):
+                    return self.config['weights']['strong_connection']
+                else:
+                    return self.config['weights']['basic_interaction']
+                
+        return self.config['weights']['basic_interaction']  # 默认权重
+
+    def _calculate_dom_similarity(self, state1: str, state2: str) -> float:
+        """
+        [新增] 计算两个状态的 XML (DOM) 相似度
+        """
+        # 构建XML文件路径
+        xml_file1 = self.utg_folder / "layout" / self.states_data[state1].get('xml', f"{state1}.xml")
+        xml_file2 = self.utg_folder / "layout" / self.states_data[state2].get('xml', f"{state2}.xml")
+        
+        # 读取XML文件内容
+        xml1 = self._read_xml_file(xml_file1)
+        xml2 = self._read_xml_file(xml_file2)
+        
+        if not xml1 or not xml2:
+            return 0.0
+            
+        try:
+            # 提取所有 Resource ID 和 Class Name，计算 Jaccard 相似系数
+            def extract_features(xml_str):
+                features = set()
+                try:
+                    root = ET.fromstring(xml_str)
+                    for elem in root.iter():
+                        # 提取 resource-id
+                        resource_id = elem.get('resource-id')
+                        if resource_id:
+                            features.add(f"id:{resource_id}")
+                        
+                        # 提取 class
+                        class_name = elem.get('class')
+                        if class_name:
+                            features.add(f"class:{class_name}")
+                            
+                        # 提取 text (前10个字符)
+                        text = elem.get('text', '')
+                        if text and len(text.strip()) > 0:
+                            features.add(f"text:{text[:10]}")
+                            
+                except ET.ParseError:
+                    pass
+                return features
+            
+            features1 = extract_features(xml1)
+            features2 = extract_features(xml2)
+
+            
+            if not features1 and not features2:
+                return 0.0
+            if not features1 or not features2:
+                return 0.0
+                
+            # Jaccard 相似度: Intersection / Union
+            intersection = len(features1 & features2)
+            union = len(features1 | features2)
+            
+            print(f"Debug: DOM相似度计算 {state1} <-> {state2}: "
+                  f"交集={intersection}, 并集={union}, 相似度={intersection / union if union > 0 else 0.0}")
+            return intersection / union if union > 0 else 0.0
+            
+        except Exception:
+            return 0.0
+    
+    def _read_xml_file(self, xml_path: Path) -> str:
+        """
+        读取XML文件内容
+        """
+        try:
+            if xml_path.exists():
+                with open(xml_path, 'r', encoding='utf-8') as f:
+                    return f.read()
+            else:
+                # 如果文件不存在，尝试其他可能的路径
+                alternative_paths = [
+                    self.utg_folder / "states" / f"{xml_path.stem}.xml",
+                    self.utg_folder / f"{xml_path.stem}.xml"
+                ]
+                for alt_path in alternative_paths:
+                    if alt_path.exists():
+                        with open(alt_path, 'r', encoding='utf-8') as f:
+                            return f.read()
+                        
+                print(f"警告: XML文件未找到: {xml_path}")
+                return ""
+        except Exception as e:
+            print(f"读取XML文件失败 {xml_path}: {e}")
+            return ""
+    
     def filter_isolated_states(self):
         """
         过滤掉没有任何连接的孤立状态节点
@@ -368,6 +590,10 @@ class UTGLouvainClustering:
         
         self.final_partition = current_partition
         print(f"\n层次聚类完成，最终聚类数: {len(set(self.final_partition.values()))}")
+        
+        # [新增] 后处理：优化簇结构
+        refined_partition = self._post_process_clusters(self.final_partition)
+        self.final_partition = refined_partition
         
         return self.final_partition
     
@@ -783,12 +1009,12 @@ if (typeof module !== 'undefined' && module.exports) {{
         
         return f"#{r:02x}{g:02x}{b:02x}"
     
-    def save_clustering_results(self, output_folder: str = None):
+    def save_clustering_results(self, output_folder: Optional[str] = None):
         """
         保存聚类结果
         """
         if output_folder is None:
-            output_folder = self.utg_folder / "louvain_results"
+            output_folder = str(self.utg_folder / "louvain_results")
         
         output_path = Path(output_folder)
         output_path.mkdir(exist_ok=True)
@@ -861,11 +1087,361 @@ if (typeof module !== 'undefined' && module.exports) {{
         }
         
         return statistics
+    
+    # =========================================================================
+    # 后处理与VLM语义修正功能
+    # =========================================================================
+    
+    def _post_process_clusters(self, partition: Dict[str, str]) -> Dict[str, str]:
+        """
+        [新增] 后处理管道
+        """
+        print("开始后处理：优化簇结构...")
+        new_partition = partition.copy()
+        
+        # 1. 递归拆分超大簇 (Recursive Split)
+        # 对节点数 > max_cluster_size 的簇，在簇内部单独再跑一次 Louvain 或 K-Means
+        new_partition = self._split_large_clusters(new_partition)
+        
+        # 2. 合并微小簇 (Merge Small Clusters)
+        # 对节点数 < min_cluster_size 的簇，将其合并到连接最紧密的邻居簇
+        new_partition = self._merge_small_clusters(new_partition)
+        
+        return new_partition
+
+    def _split_large_clusters(self, partition: Dict[str, str]) -> Dict[str, str]:
+        """
+        [新增] 拆分过大的簇
+        """
+        print("检查并拆分过大的簇...")
+        new_partition = partition.copy()
+        
+        # 统计每个 Cluster ID 的节点列表
+        clusters = defaultdict(list)
+        for node, cluster_id in partition.items():
+            clusters[cluster_id].append(node)
+        
+        cluster_id_counter = max(int(cid) for cid in clusters.keys()) + 1 if clusters else 0
+        
+        for cluster_id, nodes in clusters.items():
+            if len(nodes) > self.config['max_cluster_size']:
+                print(f"self.config['max_cluster_size'] = {self.config['max_cluster_size']}")
+                print(f"  拆分簇 {cluster_id} ({len(nodes)} 个节点)")
+                
+                # 取出该 Cluster 的子图
+                subgraph = self.weighted_graph.subgraph(nodes).copy()
+                
+                if len(subgraph.nodes()) < 2:
+                    continue
+                
+                # 对子图运行单次 Louvain
+                sub_partition = {node: str(i) for i, node in enumerate(subgraph.nodes())}
+                refined_sub_partition = self._phase1_optimize(subgraph, sub_partition)
+                
+                # 为生成的子簇分配新的 ID
+                sub_communities = set(refined_sub_partition.values())
+                if len(sub_communities) > 1:  # 成功拆分
+                    for node in nodes:
+                        sub_cluster = refined_sub_partition.get(node, '0')
+                        new_cluster_id = f"{cluster_id}_{sub_cluster}"
+                        new_partition[node] = new_cluster_id
+        
+        return new_partition
+
+    def _merge_small_clusters(self, partition: Dict[str, str]) -> Dict[str, str]:
+        """
+        [新增] 合并过小的簇 (Orphans)
+        """
+        print("检查并合并过小的簇...")
+        new_partition = partition.copy()
+        
+        max_iterations = 10  # 防止无限循环
+        iteration = 0
+        
+        while iteration < max_iterations:
+            iteration += 1
+            changed = False
+            
+            # 统计 Cluster sizes
+            cluster_sizes = defaultdict(int)
+            for cluster_id in new_partition.values():
+                cluster_sizes[cluster_id] += 1
+            
+            # 找到 size < min_cluster_size 的簇
+            small_clusters = [cid for cid, size in cluster_sizes.items() 
+                            if size < self.config['min_cluster_size']]
+            
+            if not small_clusters:
+                break
+                
+            for small_cluster_id in small_clusters:
+                # 获取该小簇的所有节点
+                small_nodes = [node for node, cid in new_partition.items() 
+                             if cid == small_cluster_id]
+                
+                # 计算它与所有邻居簇的边权重总和
+                neighbor_weights = defaultdict(float)
+                
+                for node in small_nodes:
+                    for neighbor in self.weighted_graph.neighbors(node):
+                        neighbor_cluster = new_partition.get(neighbor)
+                        if neighbor_cluster and neighbor_cluster != small_cluster_id:
+                            weight = self.weighted_graph[node][neighbor].get('weight', 1.0)
+                            neighbor_weights[neighbor_cluster] += weight
+                
+                # 找到连接最强的邻居簇
+                if neighbor_weights:
+                    best_neighbor = max(neighbor_weights.items(), key=lambda x: x[1])[0]
+                    
+                    # 将该小簇的所有节点重命名为邻居簇 ID
+                    for node in small_nodes:
+                        new_partition[node] = best_neighbor
+                    
+                    changed = True
+                    print(f"  合并小簇 {small_cluster_id} ({len(small_nodes)} 节点) -> 簇 {best_neighbor}")
+            
+            if not changed:
+                break
+        
+        return new_partition
+
+    def refine_clusters_with_vlm(self):
+        """
+        [新增] 第五阶段：基于 VLM 的语义修正
+        
+        1. Pruning: 检查簇内节点是否与簇中心语义一致，不一致则剔除。
+        2. Reassignment: 将游离节点重新分配到语义最匹配的簇。
+        """
+        print("启动 VLM 语义修正流程...")
+        
+        # 1. 识别每个簇的 Representative (中心节点)
+        cluster_representatives = self._identify_cluster_representatives()
+        
+        # 2. 剔除阶段 (Pruning)
+        # 将不符合簇语义的节点变为 'orphan' (无主节点)
+        orphans = self._prune_clusters_semantically(cluster_representatives)
+        
+        # 3. 再分配阶段 (Reassignment)
+        # 尝试将 orphans 分配给最相似的簇
+        self._reassign_orphans_semantically(orphans, cluster_representatives)
+        
+        return self.final_partition
+
+    def _identify_cluster_representatives(self) -> Dict[str, str]:
+        """
+        找出每个簇的'中心节点' (Representative Node)
+        策略：选择簇内 Degree Centrality (度中心性) 最高的节点。
+        Returns: {cluster_id: state_id}
+        """
+        representatives = {}
+        clusters = defaultdict(list)
+        for node, cluster_id in self.final_partition.items():
+            clusters[cluster_id].append(node)
+            
+        for c_id, nodes in clusters.items():
+            # 在子图中找度最大的节点
+            subgraph = self.graph.subgraph(nodes)
+            # 排序：度数降序
+            degree_list = []
+            for node in subgraph.nodes():
+                degree = len(list(subgraph.neighbors(node)))
+                degree_list.append((node, degree))
+            sorted_nodes = sorted(degree_list, key=lambda x: x[1], reverse=True)
+            if sorted_nodes:
+                representatives[c_id] = sorted_nodes[0][0]  # 取度最高的作为代表
+                
+        print(f"已选定 {len(representatives)} 个簇代表节点")
+        return representatives
+
+    def _prune_clusters_semantically(self, representatives: Dict[str, str]) -> List[str]:
+        """
+        遍历簇内节点，与代表节点进行 VLM 对比。
+        如果不相似，从簇中移除。
+        """
+        orphans = []
+        
+        # 为了节省成本，我们只检查"可疑节点"：
+        # 1. 或者是通过 'weak_connection' 连进来的节点
+        # 2. 或者是距离中心节点路径较远的节点
+        # 这里演示简单逻辑：随机抽样检查 或 检查所有非中心节点 (成本较高)
+        
+        for state_id, cluster_id in list(self.final_partition.items()):
+            rep_id = representatives.get(cluster_id)
+            
+            # 跳过代表节点本身
+            if state_id == rep_id:
+                continue
+                
+            # 获取截图路径 (假设 state_data 里有图片路径)
+            img_target = self.states_data[state_id].get('image')
+            img_rep = self.states_data[rep_id].get('image') if rep_id else None
+            
+            if not img_target or not img_rep:
+                continue
+            
+            # 调用 VLM 判断一致性
+            # is_consistent: bool, reason: str
+            is_consistent, reason = self._call_vlm_compare(img_target, img_rep)
+            
+            if not is_consistent:
+                print(f"剔除节点: {state_id} 不属于簇 {cluster_id} (代表: {rep_id})。原因: {reason}")
+                # 从当前分区中移除
+                del self.final_partition[state_id]
+                orphans.append(state_id)
+        
+        return orphans
+
+    def _reassign_orphans_semantically(self, orphans: List[str], representatives: Dict[str, str]):
+        """
+        将孤儿节点与所有簇代表进行对比，分配给最相似的簇。
+        """
+        for orphan_id in orphans:
+            best_cluster = None
+            max_score = 0.0
+            
+            orphan_img = self.states_data[orphan_id].get('image')
+            if not orphan_img:
+                continue
+            
+            # 遍历候选簇 (可以只选 Top-K 个可能的邻居簇来减少 API 调用)
+            for cluster_id, rep_id in representatives.items():
+                rep_img = self.states_data[rep_id].get('image')
+                if not rep_img:
+                    continue
+                
+                # 调用 VLM 获取相似度分数 (0-10分)
+                score, _ = self._call_vlm_score(orphan_img, rep_img)
+                
+                if score > max_score:
+                    max_score = score
+                    best_cluster = cluster_id
+            
+            # 设定阈值，比如 7/10 分才准入
+            if best_cluster and max_score >= 7.0:
+                print(f"重新分配: {orphan_id} -> 簇 {best_cluster} (得分: {max_score})")
+                self.final_partition[orphan_id] = best_cluster
+            else:
+                print(f"节点 {orphan_id} 无法归类，保持孤立或新建簇")
+                # 可选：为它创建一个新簇
+
+    # ================= VLM 接口部分 =================
+    
+    def _get_full_image_path(self, image_filename: str) -> str:
+        """
+        将相对图片文件名转换为完整的绝对路径
+        """
+        if not image_filename:
+            return ""
+        
+        # 如果已经是绝对路径，直接返回
+        if os.path.isabs(image_filename) and os.path.exists(image_filename):
+            return image_filename
+        
+        # 尝试不同的可能路径
+        possible_paths = [
+            # UTG目录下的screenshot文件夹
+            self.utg_folder / "screenshot" / image_filename,
+            # UTG目录下的states文件夹  
+            self.utg_folder / "states" / image_filename,
+            # UTG目录下直接存放
+            self.utg_folder / image_filename,
+            # 父目录下的screenshot文件夹
+            self.utg_folder.parent / "screenshot" / image_filename
+        ]
+        
+        # 检查哪个路径存在
+        for path in possible_paths:
+            if path.exists():
+                return str(path)
+        
+        # 如果都找不到，返回第一个可能的路径（用于调试）
+        fallback_path = self.utg_folder / "states" / image_filename
+        print(f"警告: 图片文件未找到 '{image_filename}'，使用回退路径: {fallback_path}")
+        return str(fallback_path)
+
+    def _call_vlm_compare(self, img_path1, img_path2) -> Tuple[bool, str]:
+        """
+        Prompt 设计：二分类判断 (Yes/No)
+        """
+        prompt = """
+        I will provide two screenshots from an Android app.
+        Image 1 is the 'Representative' of a functional cluster (e.g., Music Player, Settings, Search).
+        Image 2 is a specific page I want to verify.
+        
+        Task: Does Image 2 functionally belong to the same specific module as Image 1?
+        - Ignore minor visual differences (e.g., different song titles, scrolled content).
+        - Focus on the Core Functionality (e.g., both are about editing user profile).
+        - If Image 2 is a completely different screen (e.g., Settings vs. Chat), answer NO.
+        
+        Response JSON format: {"result": true/false, "reason": "brief explanation"}
+        """
+        try:
+            # 确保传递给VLM的是完整的绝对路径
+            full_img_path1 = self._get_full_image_path(img_path1)
+            
+            print(f"Debug: VLM调用图片路径: {full_img_path1}")
+            
+            # 调用 VLM 客户端
+            response = self.vlm_client.run(prompt, full_img_path1)
+            content = response.get('content', '')
+            
+            # 简单解析 JSON 响应
+            import json
+            try:
+                result_data = json.loads(content)
+                return result_data.get('result', False), result_data.get('reason', 'No reason provided')
+            except:
+                # 如果不是 JSON，则通过关键词判断
+                if 'true' in content.lower() or 'yes' in content.lower():
+                    return True, "VLM indicated similarity"
+                else:
+                    return False, "VLM indicated difference"
+        except Exception as e:
+            print(f"VLM compare error: {e}")
+            return True, "VLM error - assumed similar"  # 保守策略
+
+    def _call_vlm_score(self, img_path1, img_path2) -> Tuple[float, str]:
+        """
+        Prompt 设计：打分 (0-10)
+        """
+        prompt = """
+        Compare the functional similarity of these two Android screenshots (0-10).
+        - 10: Identical functionality (just different content).
+        - 8-9: Same module, slightly different state (e.g., list vs detail in same flow).
+        - 5-7: Related but distinct (e.g., Search bar vs Search results).
+        - 0-4: Completely unrelated.
+        
+        Return JSON: {"score": 8.5, "reason": "..."}
+        """
+        try:
+            # 确保传递给VLM的是完整的绝对路径
+            full_img_path1 = self._get_full_image_path(img_path1)
+            
+            print(f"Debug: VLM评分图片路径: {full_img_path1}")
+            
+            response = self.vlm_client.run(prompt, full_img_path1)
+            content = response.get('content', '')
+            
+            import json
+            try:
+                result_data = json.loads(content)
+                return float(result_data.get('score', 0.0)), result_data.get('reason', 'No reason provided')
+            except:
+                # 提取数字分数
+                import re
+                score_match = re.search(r'(\d+\.?\d*)', content)
+                if score_match:
+                    return float(score_match.group(1)), "Extracted from VLM response"
+                else:
+                    return 0.0, "Could not parse VLM score"
+        except Exception as e:
+            print(f"VLM score error: {e}")
+            return 0.0, "VLM error"
 
 
 def main():
     """
-    主函数：从utg.js文件进行UTG Louvain聚类
+    主函数：从utg.js文件进行UTG Louvain聚类（增强版）
     """
     # UTG JavaScript文件路径
     utg_js_path = r"C:\\Projects\\AndroidTaskAutomation\\2_structuring\\utg\\NetEase Cloud Music\\utg.js"
@@ -873,30 +1449,39 @@ def main():
     # 创建聚类器
     clusterer = UTGLouvainClustering(utg_js_path)
     
-    # 配置层次聚类参数
+    # [增强] 配置层次聚类参数
     clusterer.max_clusters = 8  # 最大聚类数阈值
     clusterer.min_cluster_size = 3  # 最小聚类大小
     clusterer.resolution = 1.2  # 提高分辨率，倾向于更大的聚类
     
-    # 加载UTG数据
+    # [增强] 配置新功能参数
+    clusterer.config['max_cluster_size'] = 50  # 超大簇拆分阈值
+    clusterer.config['min_cluster_size'] = 10   # 微小簇合并阈值
+    
+    # 加载UTG数据（包含Hub节点识别和混合权重计算）
     clusterer.load_utg_data()
     
-    # 执行Louvain聚类
+    # 执行Louvain聚类（包含后处理）
     final_partition = clusterer.run_louvain_clustering()
     
-    # # 保存结果
+    # # [可选] VLM语义修正（需要有效的截图路径）
+    # final_partition = clusterer.refine_clusters_with_vlm()
+    
+    # 保存结果
     clusterer.save_clustering_results()
     
     # 打印结果摘要
     communities = set(final_partition.values())
-    print(f"\n=== UTG Louvain聚类结果 ===")
+    print(f"\n=== UTG Louvain聚类结果（增强版） ===")
     print(f"输入文件: {clusterer.utg_js_path.name}")
     print(f"连通状态数: {len(clusterer.states_data)}")
     print(f"过滤孤立状态数: {len(clusterer.filtered_states)}")
+    print(f"Hub节点数: {len(clusterer.hub_nodes)}")
     print(f"总转换数: {len(clusterer.events_data)}")
     print(f"层次聚类层数: {len(clusterer.hierarchical_levels)}")
     print(f"最终聚类数: {len(communities)}")
-    print(f"最终模块度: {clusterer.modularity_history[-1]:.4f}")
+    if clusterer.modularity_history:
+        print(f"最终模块度: {clusterer.modularity_history[-1]:.4f}")
     
     # 显示每层的聚类数变化
     if clusterer.hierarchical_levels:
@@ -918,7 +1503,17 @@ def main():
     if clusterer.filtered_states:
         print(f"\n过滤的孤立状态示例: {list(clusterer.filtered_states)[:5]}")
     
+    if clusterer.hub_nodes:
+        print(f"\nHub节点示例: {list(clusterer.hub_nodes)[:5]}")
+    
     print(f"\n聚类结果已保存到: {clusterer.utg_folder}/utg_clustered.js")
+    print("\n增强功能说明：")
+    print("  ✓ Hub节点识别与权重调整")
+    print("  ✓ DOM相似度计算")
+    print("  ✓ 交互类型权重分析")
+    print("  ✓ 超大簇自动拆分")
+    print("  ✓ 微小簇自动合并")
+    print("  • VLM语义修正 (可选启用)")
 
 
 if __name__ == "__main__":

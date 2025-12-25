@@ -204,12 +204,10 @@ def analyze_clusters(nodes, edges):
         if cluster is None:
             cluster = 0
 
-        # ensure strings
+        # ensure strings for node id, but keep cluster_id in original format
         nid = str(nid)
-        try:
-            cluster = int(cluster)
-        except Exception:
-            cluster = str(cluster)
+        # 保持 cluster_id 的原始格式，不强制转换为整数
+        cluster = str(cluster)  # 只转换为字符串用作字典键
 
         entry = {'_resolved_id': nid, 'cluster': cluster}
         entry.update(n)
@@ -231,17 +229,19 @@ def analyze_clusters(nodes, edges):
         
         # Get edge tag/id if available
         edge_tag = e.get('id', e.get('tag', f'e{i}'))
+
+        hash_id = e.get('hash_id', str())
+
+        print(f"Edge {i}: {s} -> {t} resolved to {s_id} -> {t_id} with tag {edge_tag} and hash_id {hash_id}")
         # support new fields: bboxes, action_types
-        bboxes = e.get('bboxes') if 'bboxes' in e else e.get('bbox') if 'bbox' in e else None
-        action_types = e.get('action_types') if 'action_types' in e else e.get('actions') if 'actions' in e else None
+        # bboxes = e.get('bboxes') if 'bboxes' in e else e.get('bbox') if 'bbox' in e else None
+        # action_types = e.get('action_types') if 'action_types' in e else e.get('actions') if 'actions' in e else None
 
         normalized_edges.append({
             'source': s_id,
             'target': t_id,
             'tag': str(edge_tag),
-            'bboxes': bboxes,
-            'action_types': action_types,
-            'original': e
+            'hash_id': str(hash_id)
         })
 
     # Initialize cluster data structures
@@ -268,6 +268,7 @@ def analyze_clusters(nodes, edges):
         s = e['source']
         t = e['target']
         tag = e['tag']
+        hash_id = e['hash_id']
         s_cluster = node_cluster.get(s)
         t_cluster = node_cluster.get(t)
 
@@ -283,31 +284,31 @@ def analyze_clusters(nodes, edges):
             # Track edges from other clusters
             if s_cluster not in clusters[t_cluster]['edges_from_other_clusters']:
                 clusters[t_cluster]['edges_from_other_clusters'][s_cluster] = []
-            edge_entry = {'from': s, 'to': t, 'tag': tag}
-            if e.get('bboxes'):
-                edge_entry['bboxes'] = e.get('bboxes')
-            if e.get('action_types'):
-                edge_entry['action_types'] = e.get('action_types')
+            edge_entry = {'from': s, 'to': t, 'tag': tag, 'hash_id': hash_id}
+            # if e.get('bboxes'):
+            #     edge_entry['bboxes'] = e.get('bboxes')
+            # if e.get('action_types'):
+            #     edge_entry['action_types'] = e.get('action_types')
             clusters[t_cluster]['edges_from_other_clusters'][s_cluster].append(edge_entry)
             
             # Track edges to other clusters  
             if t_cluster not in clusters[s_cluster]['edges_to_other_clusters']:
                 clusters[s_cluster]['edges_to_other_clusters'][t_cluster] = []
-            edge_entry2 = {'from': s, 'to': t, 'tag': tag}
-            if e.get('bboxes'):
-                edge_entry2['bboxes'] = e.get('bboxes')
-            if e.get('action_types'):
-                edge_entry2['action_types'] = e.get('action_types')
+            edge_entry2 = {'from': s, 'to': t, 'tag': tag, 'hash_id': hash_id}
+            # if e.get('bboxes'):
+            #     edge_entry2['bboxes'] = e.get('bboxes')
+            # if e.get('action_types'):
+            #     edge_entry2['action_types'] = e.get('action_types')
             clusters[s_cluster]['edges_to_other_clusters'][t_cluster].append(edge_entry2)
         else:
             # internal edge: count degrees and store edge
             clusters[s_cluster]['deg_out'][s] = clusters[s_cluster]['deg_out'].get(s, 0) + 1
             clusters[s_cluster]['deg_in'][t] = clusters[s_cluster]['deg_in'].get(t, 0) + 1
-            edge_inside = {'from': s, 'to': t, 'tag': tag}
-            if e.get('bboxes'):
-                edge_inside['bboxes'] = e.get('bboxes')
-            if e.get('action_types'):
-                edge_inside['action_types'] = e.get('action_types')
+            edge_inside = {'from': s, 'to': t, 'tag': tag, 'hash_id': hash_id}
+            # if e.get('bboxes'):
+            #     edge_inside['bboxes'] = e.get('bboxes')
+            # if e.get('action_types'):
+            #     edge_inside['action_types'] = e.get('action_types')
             clusters[s_cluster]['edges_inside_cluster'].append(edge_inside)
 
     # Build final result
