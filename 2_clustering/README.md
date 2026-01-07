@@ -8,3 +8,6 @@ python run_semantic_merge.py
 
 
 python run_pure_semantic_clustering.py
+
+
+python analyze_all_node.py .\utg\Music Player\utg.js
