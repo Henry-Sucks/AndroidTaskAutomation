@@ -1,0 +1,1 @@
+python intent_graph_builder.py --utg_dir "c:\Projects\AndroidTaskAutomation\3_intent_graph\utg\Music_Player"
