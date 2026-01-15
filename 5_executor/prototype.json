@@ -1,0 +1,27 @@
+{
+  "app": "MusicApp",
+  "num_prototypes": 1,
+  "prototypes": [
+    {
+      "name": "PlayMusic",
+      "intent": "PlayMusic",
+      "definition": "Functional prototype for PlayMusic",
+      "preconditions": [
+        "required_capabilities_available"
+      ],
+      "postconditions": [
+        "functional_goal_achieved"
+      ],
+      "core_capabilities": [
+        "Select_Song",
+        "Play_Song"
+      ],
+      "supporting_tig_nodes": [
+        "TIG_LIBRARY_BROWSE",
+        "TIG_MUSIC_ALBUM_EXPLORATION",
+        "TIG_PLAYBACK_CONTROL",
+        "TIG_SEARCH_MODE"
+      ]
+    }
+  ]
+}

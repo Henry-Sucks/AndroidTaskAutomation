@@ -1,0 +1,722 @@
+{
+  "metadata": {
+    "total_nodes": 19,
+    "total_edges": 56
+  },
+  "nodes": [
+    {
+      "id": "TIG_LIBRARY_BROWSE",
+      "intent_label": "Library_Browse",
+      "ui_description": "This screen displays a music library with categorized tracks and provides a modal dialog for applying time-based filters to refine the track list view.",
+      "mapped_utg_ids": [
+        "9AF4F23F93E61982782C86DC1D4EF9A5",
+        "097E8C48DF451A6C5322DE6A32B66B16",
+        "9420517BFD849297CB15A3D8C381A58B",
+        "539CD3C9B0560145D33DC6FD429BE310",
+        "0AAE9D5CA566516A26530AA846EC3FC4"
+      ],
+      "capabilities": [
+        "Access_Sleep_Timer",
+        "Browse_Albums",
+        "Browse_Artists",
+        "Browse_Playlists",
+        "Browse_Tracks",
+        "Change_USB_Mode",
+        "Configure(SleepTimer)",
+        "CreatePlaylist",
+        "Dismiss_Dialog",
+        "Filter_Content",
+        "NavigateTo(PlaylistLibrary)",
+        "Navigate_Settings",
+        "Navigate_To_Player",
+        "Play(song)",
+        "Play_Song",
+        "Search_Music",
+        "Select_Album",
+        "Select_Artist",
+        "Select_Song",
+        "SetFilter",
+        "SetFilter(duration='30 minutes')",
+        "SetSleepTimer",
+        "View_Currently_Playing",
+        "View_Track_Counts"
+      ]
+    },
+    {
+      "id": "TIG_PLAYLIST_EXPORT",
+      "intent_label": "Playlist_Export",
+      "ui_description": "This modal dialog allows the user to export a playlist by selecting a destination folder and specifying a filename for the exported file, with the app's song list visible in the background.",
+      "mapped_utg_ids": [
+        "8142D6C433393978C8C191ED4D160640"
+      ],
+      "capabilities": [
+        "Cancel_Export",
+        "Confirm_Export",
+        "Enter_Filename",
+        "Select_Export_Folder"
+      ]
+    },
+    {
+      "id": "TIG_QUEUE_MANAGEMENT",
+      "intent_label": "Queue_Management",
+      "ui_description": "This screen displays and manages the upcoming track queue in a music player, showing song details, album art, and allowing users to view, search, and reorder queued songs.",
+      "mapped_utg_ids": [
+        "85A7E169B3792A63D84A38089DF2BDBC",
+        "EBF34927B77F4B2372914707A2801A94"
+      ],
+      "capabilities": [
+        "Access_Track_Options",
+        "Manage_Queue",
+        "Manage_Queue_Content",
+        "Play_Next_Track",
+        "Remove_Tracks",
+        "Reorder_Queue",
+        "Reorder_Tracks",
+        "Search_Tracks",
+        "View_Queue"
+      ]
+    },
+    {
+      "id": "TIG_SEARCH_MODE",
+      "intent_label": "Search_Mode",
+      "ui_description": "This screen displays search results for music queries, presenting a list of matching tracks with song titles, durations, and album art for users to browse and select for playback.",
+      "mapped_utg_ids": [
+        "0E948427FE75ED0C97A08896E5F08F66",
+        "32B3AB6FCC2D48D24769BC495221B190",
+        "B05E10AD636297A1BEE57BF1AC51A411",
+        "B3A74F4F362547490A4EDF1C5B47DD3F",
+        "1FFDF3B2837837138E68723EEB41A64B",
+        "488A578C4EE6F37A27130B9D3AC61C2D",
+        "77BF8237E7CBA888001773CF3E877D32",
+        "A5EB3A71D6059A9B61CDBBC39A96B0E4",
+        "F4C2DE8868C54D3492B6DE12B4B2970B"
+      ],
+      "capabilities": [
+        "Access_App_Options",
+        "Activate(Search_Bar)",
+        "Adjust_Equalizer",
+        "Browse_Albums",
+        "Browse_Artists",
+        "Browse_Playlist_Details",
+        "Browse_Results",
+        "Browse_Search_Results",
+        "Browse_Track_List",
+        "Control_Playback",
+        "Filter_By_Category",
+        "Monitor_Sleep_Timer",
+        "Navigate(PlaylistDetails, playlist_name='test')",
+        "Navigate(SearchInterface)",
+        "Navigate(Tab: Playlists)",
+        "Navigate(Tab='Artists')",
+        "Navigate(To: PlayerScreen)",
+        "NavigateTo(SearchScreen)",
+        "Navigate_From_Search",
+        "Navigate_Library",
+        "Navigate_Tabs",
+        "Navigate_To_Categories",
+        "Pause_Song",
+        "PlayTrack(track_id='Halo_Beyonce')",
+        "Play_Song",
+        "Play_Track",
+        "Search_Filter_By_Duration",
+        "Search_Music",
+        "Select_Song",
+        "Select_Track",
+        "Set_Timer",
+        "Sort_Results",
+        "View_Artist_Profile",
+        "View_Currently_Playing",
+        "View_Search_Results",
+        "View_Song_Details",
+        "View_Track_Count"
+      ]
+    },
+    {
+      "id": "TIG_MUSIC_ALBUM_EXPLORATION",
+      "intent_label": "Music_Album_Exploration",
+      "ui_description": "This screen displays detailed track listings for a selected album from music search results, allowing users to view album contents and initiate playback of specific tracks, with an active mini-player showing the currently selected song.",
+      "mapped_utg_ids": [
+        "9373B68B2AD417E28961C128E7E00A53"
+      ],
+      "capabilities": [
+        "Access_Mini_Player_Controls",
+        "Navigate_Back",
+        "Play_Song",
+        "View_Album_Details"
+      ]
+    },
+    {
+      "id": "TIG_PLAYBACK_CONTROL",
+      "intent_label": "Playback_Control",
+      "ui_description": "This screen displays a full-screen music player interface with playback controls, progress tracking, speed adjustment, and shows the current track's metadata along with the next song in queue.",
+      "mapped_utg_ids": [
+        "971D5BD6579F787F233DDD74DEB7A8A2",
+        "7A8CDD7AD54F6D90A4BCB6383AEF862B",
+        "30780544B9E7AB20BA6031E69AB9710E",
+        "44DEA55690941A1E62D3026BDA889523"
+      ],
+      "capabilities": [
+        "Adjust_Appearance",
+        "Adjust_Playback_Speed",
+        "Confirm_Settings",
+        "Control_Playback",
+        "Navigate_Back",
+        "Navigate_To_Previous_Screen",
+        "Navigate_To_Track_Queue",
+        "Next_Track",
+        "Pause_Media",
+        "Pause_Song",
+        "Play_Media",
+        "Play_Song",
+        "Previous_Track",
+        "SeekTo(03:23)",
+        "Seek_To_Position",
+        "Seek_Track",
+        "Skip_Track",
+        "Toggle_Shuffle_Repeat",
+        "View(PlaybackState)",
+        "View_Next_Song",
+        "View_Playback_Queue"
+      ]
+    },
+    {
+      "id": "TIG_SETTINGS_MENU",
+      "intent_label": "Settings_Menu",
+      "ui_description": "This screen presents a categorized settings menu allowing users to customize the app's appearance through color themes, configure general behavior like language and tab management, and adjust audio playback preferences.",
+      "mapped_utg_ids": [
+        "2D92E33D9D3C31F9EB58308D0626EBB3",
+        "30A37D7CF88C0B2D210F8C7B18EC0388"
+      ],
+      "capabilities": [
+        "Adjust_Audio_Settings",
+        "Change_Language",
+        "Configure_USB_Mode",
+        "Confirm_Color_Customization_Selections",
+        "Customize_Interface_Colors",
+        "Customize_Widget_Colors",
+        "Manage_Excluded_Folders",
+        "Manage_Shown_Tabs",
+        "Navigate(Customize widget colors)",
+        "Navigate_Back",
+        "OpenDialog(TabManagement)",
+        "Toggle_Album_Color_Customization",
+        "Toggle_Artist_Color_Customization",
+        "Toggle_Playlist_Color_Customization",
+        "Toggle_Track_Color_Customization"
+      ]
+    },
+    {
+      "id": "TIG_LIBRARY_SORT_CONFIGURATION",
+      "intent_label": "Library_Sort_Configuration",
+      "ui_description": "This modal dialog allows users to configure sorting criteria and order for music library items, presenting options for sorting by title or track count with ascending/descending toggles.",
+      "mapped_utg_ids": [
+        "7CDD5F36C07BC170C44130976F41B838"
+      ],
+      "capabilities": [
+        "ApplySort",
+        "Cancel_SortDialog",
+        "SetSortPreference",
+        "SetSortPreference(sortBy='Track Count', order='Descending')"
+      ]
+    },
+    {
+      "id": "TIG_EQUALIZER_SETTINGS",
+      "intent_label": "Equalizer_Settings",
+      "ui_description": "This screen allows users to select from various audio equalizer presets for different music genres or switch to custom mode for manual frequency adjustments, with the currently selected preset visually highlighted.",
+      "mapped_utg_ids": [
+        "63A245E002A60C6513C7048D5AF23A13"
+      ],
+      "capabilities": [
+        "Adjust_Audio_Profile",
+        "Select_Equalizer_Preset",
+        "Switch_To_Custom_Equalizer"
+      ]
+    },
+    {
+      "id": "TIG_PLAYBACK_SPEED_ADJUSTMENT",
+      "intent_label": "Playback_Speed_Adjustment",
+      "ui_description": "This screen is a media player interface with an active modal overlay that allows the user to adjust the playback speed of the current media item, which is currently set to normal speed (1.00x).",
+      "mapped_utg_ids": [
+        "6399BF98467E8ADD7B828317152F3ED4"
+      ],
+      "capabilities": [
+        "Adjust_Playback_Speed",
+        "Close_Playback_Speed_Modal",
+        "Pause_Media",
+        "Play_Media",
+        "Seek_Media",
+        "View_Media_Progress"
+      ]
+    },
+    {
+      "id": "TIG_AUDIO_EQUALIZER_ADJUSTMENT",
+      "intent_label": "Audio_Equalizer_Adjustment",
+      "ui_description": "This screen allows users to customize audio output by adjusting five frequency band sliders (60 Hz to 14 kHz) with ±15 unit range and provides access to preset equalizer configurations.",
+      "mapped_utg_ids": [
+        "39B698F78D9FD0093275969898BFDF57"
+      ],
+      "capabilities": [
+        "Adjust_Equalizer_Band",
+        "Navigate_Back",
+        "Open_Preset_Menu"
+      ]
+    },
+    {
+      "id": "TIG_SEARCH_RESULTS",
+      "intent_label": "Search_Results",
+      "ui_description": "This screen displays search results for the query 'hello world!' with a 'no items found' message and an option to create a new playlist, while showing the currently playing track in a bottom player bar.",
+      "mapped_utg_ids": [
+        "F5F891A1A27505A1B28E1E9F210ADB64"
+      ],
+      "capabilities": [
+        "Create_Playlist",
+        "Pause_Playback",
+        "Search(query = \"hello world!\")",
+        "Search(query=\"hello world!\")",
+        "Search_Music"
+      ]
+    },
+    {
+      "id": "TIG_SETTINGS_FOLDER_MANAGEMENT",
+      "intent_label": "Settings_Folder_Management",
+      "ui_description": "This screen allows users to configure folder exclusions for audio file scanning, with explanatory text about how excluded folders affect library visibility versus manual playlist additions.",
+      "mapped_utg_ids": [
+        "8504FE1A0B2ED93AE1CBBD2DEA95FD70"
+      ],
+      "capabilities": [
+        "Configure_Folder_Exclusions",
+        "Manage_Library_Visibility"
+      ]
+    },
+    {
+      "id": "TIG_COLOR_SELECTION",
+      "intent_label": "Color_Selection",
+      "ui_description": "This dialog allows users to select a precise color through multiple methods including a gradient color field, hue spectrum slider, preset swatches, and hex code input before confirming their choice.",
+      "mapped_utg_ids": [
+        "721AFF8544BB55761DA8BCAAB4D67F7E"
+      ],
+      "capabilities": [
+        "Adjust_Hue",
+        "Cancel_Color_Selection",
+        "Choose_Preset_Color",
+        "Confirm_Color_Selection",
+        "Input_Hex_Code",
+        "Select_Color_Gradient"
+      ]
+    },
+    {
+      "id": "TIG_COLOR_CUSTOMIZATION",
+      "intent_label": "Color_Customization",
+      "ui_description": "This screen allows users to select and customize colors through a gradient picker, hue slider, preset swatches, and hex code input, with live preview of the selected color.",
+      "mapped_utg_ids": [
+        "7558E52BA82955F70408D86294314F39"
+      ],
+      "capabilities": [
+        "Adjust_Hue",
+        "Choose_Preset_Color",
+        "Confirm_Color_Selection",
+        "Input_Hex_Code",
+        "Preview_Color",
+        "Select_Color_Gradient"
+      ]
+    },
+    {
+      "id": "TIG_FOLDER_SELECTION",
+      "intent_label": "Folder_Selection",
+      "ui_description": "This screen presents a dialog for selecting a folder from the device's internal storage, displaying each folder with an icon and item count to help users choose a directory for file operations.",
+      "mapped_utg_ids": [
+        "D122BA44B7E081B085611197E564C6F0"
+      ],
+      "capabilities": [
+        "Browse_Internal_Storage",
+        "Select_Folder",
+        "View_Folder_Contents_Count"
+      ]
+    },
+    {
+      "id": "TIG_PLAYLIST_MANAGEMENT",
+      "intent_label": "Playlist_Management",
+      "ui_description": "This screen allows users to manage their music playlist by viewing track listings, adding songs or folders to the playlist, exporting the playlist to a file, and controlling active playback from a bottom bar.",
+      "mapped_utg_ids": [
+        "C626FAB70BEC9294BE71F8690BC777C5"
+      ],
+      "capabilities": [
+        "Add_File_To_Playlist",
+        "Add_Folder_To_Playlist",
+        "Control_Playback",
+        "Export_Playlist",
+        "Pause_Playback",
+        "View_Track_List"
+      ]
+    },
+    {
+      "id": "TIG_PLAYLIST_CREATION",
+      "intent_label": "Playlist_Creation",
+      "ui_description": "This modal dialog allows users to create a new custom playlist by entering a title, with cancel and confirm options, while showing existing playlists and current playback in the background.",
+      "mapped_utg_ids": [
+        "7768C3448BB00C243939B29BB9E4286A"
+      ],
+      "capabilities": [
+        "Cancel_Playlist_Creation",
+        "Create_Playlist",
+        "Enter_Text",
+        "View_Current_Playback",
+        "View_Existing_Playlists"
+      ]
+    },
+    {
+      "id": "TIG_THEME_CUSTOMIZATION",
+      "intent_label": "Theme_Customization",
+      "ui_description": "This screen allows users to personalize the app's visual appearance by selecting color options for theme, text, background, primary accents, and app icon through interactive color swatches and toggles.",
+      "mapped_utg_ids": [
+        "08E0859AAF5561E7259985A87EFCF150"
+      ],
+      "capabilities": [
+        "Change_App_Icon_Color",
+        "Change_Background_Color",
+        "Change_Primary_Color",
+        "Change_Text_Color",
+        "NavigateBack",
+        "Select_Theme"
+      ]
+    }
+  ],
+  "edges": [
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_SEARCH_MODE",
+      "action": "Navigate(SearchInterface)",
+      "description": "The user clicked the search icon to open the search interface, likely to find specific content within the music app."
+    },
+    {
+      "source": "TIG_SETTINGS_MENU",
+      "target": "TIG_SETTINGS_MENU",
+      "action": "OpenDialog(TabManagement)",
+      "description": "The user tapped 'Manage shown tabs' to open a dialog for selecting which categories (Playlists, Artists, Albums, Tracks) are displayed in the app."
+    },
+    {
+      "source": "TIG_MUSIC_ALBUM_EXPLORATION",
+      "target": "TIG_SEARCH_MODE",
+      "action": "Navigate(PreviousScreen)",
+      "description": "The user intended to exit the current search results page and return to the previous screen in the music app."
+    },
+    {
+      "source": "TIG_SETTINGS_MENU",
+      "target": "TIG_SEARCH_MODE",
+      "action": "Navigate(PreviousScreen)",
+      "description": "The user intended to exit the Settings menu and return to the main music library interface to browse or play music."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_LIBRARY_BROWSE",
+      "action": "Navigate(PlayerScreen)",
+      "description": "The user tapped the back arrow to exit the current playlist view and navigate to the full-screen music player, likely to begin playback or adjust playback settings."
+    },
+    {
+      "source": "TIG_SETTINGS_MENU",
+      "target": "TIG_SETTINGS_MENU",
+      "action": "Navigate(Customize widget colors)",
+      "description": "The user intends to customize the colors of widgets within the application, accessing the dedicated settings panel for this purpose."
+    },
+    {
+      "source": "TIG_SETTINGS_MENU",
+      "target": "TIG_LIBRARY_BROWSE",
+      "action": "Select(USB_Mode)",
+      "description": "The user intended to change the USB connection mode on their device, likely to switch from file transfer to charging only, by interacting with a settings option related to headphone button behavior (which may have triggered an unintended system-level USB prompt)."
+    },
+    {
+      "source": "TIG_LIBRARY_BROWSE",
+      "target": "TIG_SEARCH_MODE",
+      "action": "DismissDialog(USB_Connection)",
+      "description": "The user canceled the USB connection mode selection, returning to the main music app interface without changing the device's USB mode."
+    },
+    {
+      "source": "TIG_LIBRARY_BROWSE",
+      "target": "TIG_SEARCH_MODE",
+      "action": "Navigate(PlaylistLibrary)",
+      "description": "The user clicked the 'Playlists' tab to navigate to the playlists section of the music app, likely to browse or manage their saved playlists."
+    },
+    {
+      "source": "TIG_PLAYBACK_CONTROL",
+      "target": "TIG_SEARCH_MODE",
+      "action": "Navigate(Back)",
+      "description": "The user intended to navigate back from the full-screen music player to the playlist view to browse or select a different song."
+    },
+    {
+      "source": "TIG_SETTINGS_MENU",
+      "target": "TIG_LIBRARY_BROWSE",
+      "action": "Toggle(Language=English)",
+      "description": "The user intended to change the app's language setting to English, which triggered a confirmation or additional settings dialog, indicating an intent to customize the interface language."
+    },
+    {
+      "source": "TIG_SETTINGS_MENU",
+      "target": "TIG_SETTINGS_FOLDER_MANAGEMENT",
+      "action": "Navigate(Manage_Excluded_Folders)",
+      "description": "The user intended to access and manage the list of folders from which audio files are excluded in the application, likely to customize which directories are scanned for music."
+    },
+    {
+      "source": "TIG_SETTINGS_MENU",
+      "target": "TIG_COLOR_CUSTOMIZATION",
+      "action": "Navigate(Settings > Color_Customization)",
+      "description": "The user opened the color customization settings to modify the app's visual theme or specific UI element colors."
+    },
+    {
+      "source": "TIG_LIBRARY_BROWSE",
+      "target": "TIG_SEARCH_MODE",
+      "action": "SetSleepTimer(duration='30 minutes')",
+      "description": "The user intended to set a 30-minute sleep timer for the music player by selecting the corresponding option from the duration menu."
+    },
+    {
+      "source": "TIG_LIBRARY_BROWSE",
+      "target": "TIG_FOLDER_SELECTION",
+      "action": "Open(FolderPickerDialog)",
+      "description": "The user intended to select a custom folder path for importing or managing music files, triggering the system's file browser dialog to allow navigation through device storage."
+    },
+    {
+      "source": "TIG_LIBRARY_BROWSE",
+      "target": "TIG_PLAYLIST_CREATION",
+      "action": "CreatePlaylist(duration=selected_duration)",
+      "description": "The user intended to create a new playlist with a specified duration, likely to curate music for a specific time-based activity, and triggered the playlist creation dialog by interacting with the duration selector."
+    },
+    {
+      "source": "TIG_SETTINGS_MENU",
+      "target": "TIG_SEARCH_MODE",
+      "action": "Toggle(LanguagePreference=English)",
+      "description": "The user intends to switch the application's interface language to English by enabling the 'Use English language' setting."
+    },
+    {
+      "source": "TIG_LIBRARY_BROWSE",
+      "target": "TIG_LIBRARY_BROWSE",
+      "action": "SetFilter(duration='30 minutes')",
+      "description": "The user selected the '30 minutes' time filter to refine their track list view, likely to narrow down results based on duration criteria."
+    },
+    {
+      "source": "TIG_LIBRARY_BROWSE",
+      "target": "TIG_SETTINGS_MENU",
+      "action": "Navigate(Settings)",
+      "description": "The user intended to navigate to the Settings menu, likely to adjust application preferences such as language or audio options, after interacting with a duration selection interface."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_AUDIO_EQUALIZER_ADJUSTMENT",
+      "action": "Navigate(EqualizerSettings)",
+      "description": "The user clicked the audio visualization button to access the equalizer settings and customize audio frequencies."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_LIBRARY_BROWSE",
+      "action": "OpenMenu(Options)",
+      "description": "The user tapped the more options button to access additional features or settings within the music app, such as setting a sleep timer or viewing app information."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_LIBRARY_BROWSE",
+      "action": "Filter(Duration)",
+      "description": "The user clicked the search icon to open a menu for filtering music by duration, indicating an intent to refine their search results based on track length."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_MUSIC_ALBUM_EXPLORATION",
+      "action": "NavigateTo(ArtistProfile, artist_name='Beyoncé')",
+      "description": "The user clicked on the 'Beyoncé' artist entry in the search results to view her full discography and related content."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_LIBRARY_SORT_CONFIGURATION",
+      "action": "ConfigureSort(sortBy='Track Count', order='Descending')",
+      "description": "The user tapped the list view toggle button to open the sorting menu and adjust the display order of artists or tracks by track count in descending order."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_PLAYBACK_CONTROL",
+      "action": "Play(song='Halo • Beyoncé')",
+      "description": "The user tapped on the song 'Halo' by Beyoncé in the artist list to open the music player and begin playback."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_SEARCH_MODE",
+      "action": "Navigate(Tab: Playlists)",
+      "description": "The user clicked the 'Playlists' tab in the bottom navigation bar to navigate to the playlists section of the music app."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_SEARCH_MODE",
+      "action": "PlayTrack(track_id='Halo_Beyonce')",
+      "description": "The user intended to play the song 'Halo' by Beyoncé, which was selected from the search results or library, triggering the launch of the music player."
+    },
+    {
+      "source": "TIG_PLAYBACK_CONTROL",
+      "target": "TIG_QUEUE_MANAGEMENT",
+      "action": "Navigate(Queue)",
+      "description": "The user tapped on the 'Next' song indicator to view the full playback queue, likely to check the order of upcoming tracks or manage the playlist."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_PLAYBACK_SPEED_ADJUSTMENT",
+      "action": "Play(song_id: 'Halo_Beyonce')",
+      "description": "The user clicked on the song 'Halo' by Beyoncé from the search results to open its dedicated playback screen and begin playing it."
+    },
+    {
+      "source": "TIG_PLAYBACK_CONTROL",
+      "target": "TIG_PLAYBACK_CONTROL",
+      "action": "View(PlaybackState)",
+      "description": "The user is viewing the current playback state of the song 'Dream It Possible' by Delacey, with no interaction or change in state occurring between the two screenshots."
+    },
+    {
+      "source": "TIG_PLAYBACK_CONTROL",
+      "target": "TIG_LIBRARY_BROWSE",
+      "action": "Navigate(PreviousScreen)",
+      "description": "The user tapped the back arrow to exit the full-screen music player and return to the main tracks list view."
+    },
+    {
+      "source": "TIG_LIBRARY_SORT_CONFIGURATION",
+      "target": "TIG_SEARCH_MODE",
+      "action": "ApplySort(sortBy='Track Count', order='Descending')",
+      "description": "The user confirmed their sorting preference to arrange artists by track count in descending order, resulting in an updated artist list display."
+    },
+    {
+      "source": "TIG_LIBRARY_SORT_CONFIGURATION",
+      "target": "TIG_LIBRARY_SORT_CONFIGURATION",
+      "action": "SetSortPreference(sortBy='Track Count', order='Descending')",
+      "description": "The user is configuring the sorting of tracks by track count in descending order and confirms the selection."
+    },
+    {
+      "source": "TIG_AUDIO_EQUALIZER_ADJUSTMENT",
+      "target": "TIG_EQUALIZER_SETTINGS",
+      "action": "OpenPresetMenu()",
+      "description": "The user tapped the 'Custom' button to access and select from predefined equalizer presets, indicating an intent to apply a specific audio profile rather than manually adjusting frequencies."
+    },
+    {
+      "source": "TIG_AUDIO_EQUALIZER_ADJUSTMENT",
+      "target": "TIG_SEARCH_MODE",
+      "action": "Navigate(Back)",
+      "description": "The user clicked the back button to exit the equalizer settings and return to the main music library interface."
+    },
+    {
+      "source": "TIG_PLAYBACK_CONTROL",
+      "target": "TIG_THEME_CUSTOMIZATION",
+      "action": "Navigate(ColorSettingsPage)",
+      "description": "The user tapped the orange color selector in the media player's interface, which triggered the navigation to a full-screen 'Customize colors' menu to adjust theme and app appearance settings."
+    },
+    {
+      "source": "TIG_LIBRARY_SORT_CONFIGURATION",
+      "target": "TIG_SEARCH_MODE",
+      "action": "Cancel(SortDialog)",
+      "description": "The user opened the sort options to reorder tracks by track count and descending order but decided not to apply these changes, so they canceled the sorting operation."
+    },
+    {
+      "source": "TIG_PLAYBACK_CONTROL",
+      "target": "TIG_COLOR_SELECTION",
+      "action": "OpenColorPicker()",
+      "description": "The user clicked on a color swatch to open the detailed color picker tool for precise color selection."
+    },
+    {
+      "source": "TIG_PLAYBACK_CONTROL",
+      "target": "TIG_PLAYBACK_CONTROL",
+      "action": "SeekTo(03:23)",
+      "description": "The user intends to skip forward in the current song to the 03:23 mark by directly interacting with the progress bar."
+    },
+    {
+      "source": "TIG_SEARCH_RESULTS",
+      "target": "TIG_SEARCH_RESULTS",
+      "action": "Search(query = \"hello world!\")",
+      "description": "The user performed a search for 'hello world!' in the music app, expecting to find matching tracks or playlists, but no results were returned, prompting the option to create a new playlist."
+    },
+    {
+      "source": "TIG_PLAYLIST_MANAGEMENT",
+      "target": "TIG_PLAYLIST_EXPORT",
+      "action": "Export(Playlist)",
+      "description": "The user intended to export the current playlist to a file, as indicated by selecting the 'Export playlist' option from the menu, which triggered the export dialog."
+    },
+    {
+      "source": "TIG_SEARCH_RESULTS",
+      "target": "TIG_PLAYLIST_CREATION",
+      "action": "OpenDialog(CreatePlaylist)",
+      "description": "The user intends to create a new playlist by initiating the creation process through the highlighted button."
+    },
+    {
+      "source": "TIG_SEARCH_RESULTS",
+      "target": "TIG_SEARCH_RESULTS",
+      "action": "Search(query=\"hello world!\")",
+      "description": "The user performed a search for 'hello world!' in the music app, expecting to find matching tracks or playlists, but no results were returned, prompting the option to create a new playlist."
+    },
+    {
+      "source": "TIG_LIBRARY_BROWSE",
+      "target": "TIG_LIBRARY_BROWSE",
+      "action": "Configure(SleepTimer)",
+      "description": "The user clicked on the search bar containing 'Sleep timer' to access and configure the sleep timer feature for music playback."
+    },
+    {
+      "source": "TIG_LIBRARY_BROWSE",
+      "target": "TIG_LIBRARY_BROWSE",
+      "action": "Play(song)",
+      "description": "The user clicked the play button to start playback of the selected song, triggering a navigation to the full-screen music player."
+    },
+    {
+      "source": "TIG_LIBRARY_BROWSE",
+      "target": "TIG_SEARCH_MODE",
+      "action": "Search(Playlists)",
+      "description": "The user intended to navigate or refresh the content within the 'Playlists' section, possibly by performing a search or selecting a different playlist category."
+    },
+    {
+      "source": "TIG_THEME_CUSTOMIZATION",
+      "target": "TIG_SETTINGS_MENU",
+      "action": "NavigateBack()",
+      "description": "The user finished customizing colors and navigated back to the main Settings menu."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_LIBRARY_BROWSE",
+      "action": "Open(TimerOptionsDialog)",
+      "description": "The user clicked the menu button to open a timer settings dialog, likely intending to set a countdown for playback or sleep mode."
+    },
+    {
+      "source": "TIG_LIBRARY_BROWSE",
+      "target": "TIG_PLAYBACK_CONTROL",
+      "action": "Navigate(PlayerScreen, song='Halo • Beyoncé')",
+      "description": "The user intended to open the music player and begin playback of the song 'Halo' by Beyoncé, which was selected from the track list."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_LIBRARY_BROWSE",
+      "action": "Navigate(AlbumsSection)",
+      "description": "The user intended to navigate to the Albums section of the music app to browse or manage their album collection."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_SEARCH_MODE",
+      "action": "Navigate(Tab='Artists')",
+      "description": "The user intended to browse or explore music by artist, triggering a navigation to the dedicated 'Artists' page within the music application."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_SEARCH_MODE",
+      "action": "Navigate(PlaylistDetails, playlist_name='test')",
+      "description": "The user clicked on the '所有曲目' (All Tracks) entry under the 'test' search result to view the full contents of that playlist."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_PLAYLIST_MANAGEMENT",
+      "action": "Navigate(PlaylistDetails, playlistId='所有曲目')",
+      "description": "The user clicked the list view toggle to navigate from the main playlists overview to the detailed track list of the '所有曲目' playlist for further management or playback."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_LIBRARY_BROWSE",
+      "action": "Navigate(TrackList)",
+      "description": "The user navigated to the dedicated track list section to browse or manage individual songs within the music application."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_SEARCH_MODE",
+      "action": "Activate(Search_Bar)",
+      "description": "The user tapped on the search bar to activate it for text input, preparing to search for a specific track, artist, or playlist."
+    },
+    {
+      "source": "TIG_SEARCH_MODE",
+      "target": "TIG_PLAYBACK_CONTROL",
+      "action": "Navigate(Playback_Control, track_id='hisKw_14096425767_b116_7927')",
+      "description": "The user clicked on a specific track or playlist item in the search results to open the music player and begin playback of that track."
+    }
+  ]
+}

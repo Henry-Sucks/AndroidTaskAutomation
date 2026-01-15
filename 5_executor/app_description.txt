@@ -1,0 +1,1 @@
+This app is a simple music player which can play music in local storage.
