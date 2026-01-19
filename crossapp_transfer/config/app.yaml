@@ -1,0 +1,4 @@
+a1:
+  apk_path: 'apk/music-player.apk'
+  appPackage: 'com.simplemobiletools.musicplayer'
+  appActivity: 'com.simplemobiletools.musicplayer.MainActivity'

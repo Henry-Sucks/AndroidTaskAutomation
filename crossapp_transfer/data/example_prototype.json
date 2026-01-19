@@ -1,0 +1,280 @@
+{
+  "app": "MusicApp",
+  "num_prototypes": 5,
+  "prototypes": [
+    {
+      "name": "PlayMusic",
+      "intent": "Play a selected track and manage playback",
+      "core_capabilities": [
+        "Browse_Music",
+        "Select_Track",
+        "Initiate_Playback",
+        "Control_Playback"
+      ],
+      "steps": [
+        {
+          "step": "Locate_Playable_Track",
+          "description": "Identify a playable music track from library, album, or other collections",
+          "required_capabilities": [
+            "Browse_Music",
+            "Select_Track"
+          ],
+          "supporting_tig_nodes": [
+            "TIG_LIBRARY_BROWSE",
+            "TIG_MUSIC_ALBUM_EXPLORATION"
+          ]
+        },
+        {
+          "step": "Start_Playback",
+          "description": "Trigger playback of the selected track",
+          "required_capabilities": [
+            "Initiate_Playback"
+          ],
+          "supporting_tig_nodes": [
+            "TIG_PLAYBACK_CONTROL"
+          ]
+        },
+        {
+          "step": "Playback_Interaction",
+          "description": "Interact with playback after music starts",
+          "optional_capabilities": [
+            "Pause_Song",
+            "Seek_Track",
+            "Play_Next_Track"
+          ],
+          "supporting_tig_nodes": [
+            "TIG_PLAYBACK_CONTROL"
+          ]
+        }
+      ],
+      "preconditions": [
+        "playable_content_available"
+      ],
+      "postconditions": [
+        "music_is_playing_or_controlled"
+      ]
+    },
+    {
+      "name": "SearchAndBrowseMusic",
+      "intent": "Search for music content and browse results",
+      "core_capabilities": [
+        "Enter_Search_Mode",
+        "Search_Music",
+        "Browse_Results",
+        "Select_Track"
+      ],
+      "steps": [
+        {
+          "step": "Enter_Search_Context",
+          "description": "Switch the application into a searchable state",
+          "required_capabilities": [
+            "Enter_Search_Mode"
+          ],
+          "supporting_tig_nodes": [
+            "TIG_SEARCH_MODE"
+          ]
+        },
+        {
+          "step": "Submit_Search_Query",
+          "description": "Provide search input to retrieve music-related results",
+          "required_capabilities": [
+            "Search_Music"
+          ],
+          "supporting_tig_nodes": [
+            "TIG_SEARCH_MODE"
+          ]
+        },
+        {
+          "step": "Explore_Search_Results",
+          "description": "Browse, filter, or refine search results",
+          "required_capabilities": [
+            "Browse_Results"
+          ],
+          "optional_capabilities": [
+            "Filter_Content"
+          ],
+          "supporting_tig_nodes": [
+            "TIG_SEARCH_RESULTS",
+            "TIG_MUSIC_ALBUM_EXPLORATION"
+          ]
+        },
+        {
+          "step": "Select_Result_Item",
+          "description": "Select a track or album from search results",
+          "required_capabilities": [
+            "Select_Track"
+          ],
+          "supporting_tig_nodes": [
+            "TIG_SEARCH_RESULTS"
+          ]
+        }
+      ],
+      "preconditions": [
+        "search_functionality_available"
+      ],
+      "postconditions": [
+        "search_target_identified"
+      ]
+    },
+    {
+      "name": "PlaylistManagement",
+      "intent": "Create and manage playlists and playback queue",
+      "core_capabilities": [
+        "View_Playlists",
+        "Create_Playlist",
+        "Modify_Playlist",
+        "Manage_Queue"
+      ],
+      "steps": [
+        {
+          "step": "Access_Playlist_Context",
+          "description": "View existing playlists or playlist management area",
+          "required_capabilities": [
+            "View_Playlists"
+          ],
+          "supporting_tig_nodes": [
+            "TIG_PLAYLIST_MANAGEMENT"
+          ]
+        },
+        {
+          "step": "Create_or_Update_Playlist",
+          "description": "Create a new playlist or modify an existing one",
+          "optional_capabilities": [
+            "Create_Playlist",
+            "Modify_Playlist"
+          ],
+          "supporting_tig_nodes": [
+            "TIG_PLAYLIST_CREATION",
+            "TIG_PLAYLIST_MANAGEMENT"
+          ]
+        },
+        {
+          "step": "Organize_Playlist_Content",
+          "description": "Add, remove, or reorder tracks within a playlist",
+          "optional_capabilities": [
+            "Add_Track_To_Playlist",
+            "Remove_Tracks",
+            "Reorder_Tracks"
+          ],
+          "supporting_tig_nodes": [
+            "TIG_PLAYLIST_MANAGEMENT"
+          ]
+        },
+        {
+          "step": "Manage_Playback_Queue",
+          "description": "View or reorder the current playback queue",
+          "optional_capabilities": [
+            "Manage_Queue",
+            "Reorder_Queue"
+          ],
+          "supporting_tig_nodes": [
+            "TIG_QUEUE_MANAGEMENT"
+          ]
+        }
+      ],
+      "preconditions": [
+        "playlist_features_available"
+      ],
+      "postconditions": [
+        "playlist_or_queue_updated"
+      ]
+    },
+    {
+      "name": "AdjustAudioSettings",
+      "intent": "Adjust audio preferences and equalizer settings",
+      "core_capabilities": [
+        "Access_Audio_Settings",
+        "Adjust_Equalizer",
+        "Select_Audio_Profile"
+      ],
+      "steps": [
+        {
+          "step": "Enter_Audio_Settings",
+          "description": "Navigate to audio or sound-related settings context",
+          "required_capabilities": [
+            "Access_Audio_Settings"
+          ],
+          "supporting_tig_nodes": [
+            "TIG_EQUALIZER_SETTINGS"
+          ]
+        },
+        {
+          "step": "Configure_Equalizer",
+          "description": "Adjust equalizer bands or select presets",
+          "optional_capabilities": [
+            "Adjust_Equalizer",
+            "Select_Equalizer_Preset"
+          ],
+          "supporting_tig_nodes": [
+            "TIG_AUDIO_EQUALIZER_ADJUSTMENT"
+          ]
+        },
+        {
+          "step": "Apply_Audio_Profile",
+          "description": "Apply selected audio configuration",
+          "optional_capabilities": [
+            "Select_Audio_Profile"
+          ],
+          "supporting_tig_nodes": [
+            "TIG_AUDIO_EQUALIZER_ADJUSTMENT"
+          ]
+        }
+      ],
+      "preconditions": [
+        "audio_settings_available"
+      ],
+      "postconditions": [
+        "audio_preferences_applied"
+      ]
+    },
+    {
+      "name": "InterfaceCustomization",
+      "intent": "Customize application interface appearance and themes",
+      "core_capabilities": [
+        "Access_Interface_Settings",
+        "Customize_Theme",
+        "Customize_Color_Scheme"
+      ],
+      "steps": [
+        {
+          "step": "Enter_Interface_Settings",
+          "description": "Navigate to interface or appearance settings",
+          "required_capabilities": [
+            "Access_Interface_Settings"
+          ],
+          "supporting_tig_nodes": [
+            "TIG_THEME_CUSTOMIZATION"
+          ]
+        },
+        {
+          "step": "Adjust_Theme_Options",
+          "description": "Select or modify overall interface themes",
+          "optional_capabilities": [
+            "Customize_Theme"
+          ],
+          "supporting_tig_nodes": [
+            "TIG_THEME_CUSTOMIZATION"
+          ]
+        },
+        {
+          "step": "Adjust_Color_Customization",
+          "description": "Customize interface color-related options",
+          "optional_capabilities": [
+            "Customize_Color_Scheme",
+            "Toggle_Track_Color_Customization",
+            "Toggle_Album_Color_Customization"
+          ],
+          "supporting_tig_nodes": [
+            "TIG_COLOR_CUSTOMIZATION"
+          ]
+        }
+      ],
+      "preconditions": [
+        "interface_settings_available"
+      ],
+      "postconditions": [
+        "interface_preferences_applied"
+      ]
+    }
+  ]
+}
