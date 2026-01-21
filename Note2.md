@@ -152,4 +152,26 @@ while not task_done:
 
 
 
-UIG
+# 2025/01/12
+
+两个方向：memory+执行；对新应用的指导；
+
+
+第二个方向：对新应用的指导
+模块1：Functional Prototype Library（跨应用）
+模块2：Task Generator（指导性任务生成器）
+模块 3：Guided Exploration Loop（指导式探索）
+
+第一步：如何定义prototype？
+⟨功能语义，前置能力条件，能力子图⟩
+
+功能语义："Play a selected song"
+前置条件（不是页面，而是“能力可达状态”）：
+```
+Precondition:
+- A track item is visible
+- Play_Song capability is available
+```
+
+能力子图（从 TIG 中截取）:
+所有能完成该功能的最小能力闭包

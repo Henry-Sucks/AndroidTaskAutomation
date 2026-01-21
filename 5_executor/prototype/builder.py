@@ -121,57 +121,128 @@ def build_capability_graph(tig: Dict) -> Dict[str, Set[str]]:
 # 3. Graph traversal -> candidate ability sets
 # =========================================================
 
-def traverse_capability_graph(graph: Dict[str, Set[str]], max_path_length: int = 3, max_candidates: int = 1000) -> List[Set[str]]:
+# def traverse_capability_graph(graph: Dict[str, Set[str]], max_path_length: int = 3, max_candidates: int = 1000) -> List[Set[str]]:
+#     """
+#     遍历能力图，生成候选能力集合。
+#     Args:
+#         graph: capability adjacency graph
+#         max_path_length: 最大路径长度，控制组合大小
+#         max_candidates: 最大候选集合数量，防止组合爆炸
+#     Returns:
+#         候选能力集合列表
+#     """
+#     candidates = []
+#     visited = set()
+    
+#     # 优化策略：只从部分节点开始，并限制总候选数
+#     start_nodes = list(graph.keys())
+    
+#     # 对每个节点进行 BFS 遍历
+#     for start_cap in start_nodes:
+#         if len(candidates) >= max_candidates:
+#             break
+            
+#         # BFS 遍历
+#         queue = deque([(start_cap, {start_cap}, 0)])  # 添加深度跟踪
+#         local_visited = set()
+        
+#         while queue and len(candidates) < max_candidates:
+#             current_cap, path_set, depth = queue.popleft()
+            
+#             # 添加当前路径的能力集合作为候选
+#             path_tuple = tuple(sorted(path_set))
+#             if path_tuple not in visited:
+#                 visited.add(path_tuple)
+#                 # 只保留有一定规模的能力集合（2个或以上能力）
+#                 if len(path_set) >= 2:
+#                     candidates.append(path_set.copy())
+            
+#             # 限制路径长度和扩展次数
+#             if depth < max_path_length and len(path_set) < max_path_length:
+#                 neighbors = list(graph.get(current_cap, set()))
+#                 # 限制每层扩展的邻居数量，避免过度膨胀
+#                 for neighbor in neighbors[:10]:  # 最多扩展10个邻居
+#                     new_path_set = path_set | {neighbor}
+#                     new_path_tuple = tuple(sorted(new_path_set))
+#                     if new_path_tuple not in visited and new_path_tuple not in local_visited:
+#                         local_visited.add(new_path_tuple)
+#                         queue.append((neighbor, new_path_set, depth + 1))
+    
+#     # 按能力集合大小排序，优先保留中等规模的组合
+#     candidates.sort(key=lambda x: (len(x), sorted(x)))
+    
+#     return candidates[:max_candidates]
+
+def traverse_capability_graph(graph: Dict[str, Set[str]],
+                              min_co_occurrence: int = 2,
+                              max_candidates: int = 1000) -> List[Set[str]]:
     """
-    遍历能力图，生成候选能力集合。
+    高频共现子图 + 最小闭包策略生成候选能力集合
+    
     Args:
         graph: capability adjacency graph
-        max_path_length: 最大路径长度，控制组合大小
-        max_candidates: 最大候选集合数量，防止组合爆炸
+        min_co_occurrence: 能力对共现阈值
+        max_candidates: 最大候选数
     Returns:
-        候选能力集合列表
+        候选能力集合列表（每个集合 >= 2 个能力）
     """
-    candidates = []
+
+    # =========================
+    # Step 1: 统计能力对共现频率
+    # =========================
+    co_occurrence = {}  # (cap1, cap2) -> count
+    for cap, neighbors in graph.items():
+        for n in neighbors:
+            key = tuple(sorted([cap, n]))
+            co_occurrence[key] = co_occurrence.get(key, 0) + 1
+
+    # =========================
+    # Step 2: 构建高频能力图
+    # =========================
+    dense_graph = {cap: set() for cap in graph.keys()}
+    for (cap1, cap2), count in co_occurrence.items():
+        if count >= min_co_occurrence:
+            dense_graph[cap1].add(cap2)
+            dense_graph[cap2].add(cap1)
+
+    # =========================
+    # Step 3: 找连通子图（connected components）
+    # =========================
     visited = set()
-    
-    # 优化策略：只从部分节点开始，并限制总候选数
-    start_nodes = list(graph.keys())
-    
-    # 对每个节点进行 BFS 遍历
-    for start_cap in start_nodes:
-        if len(candidates) >= max_candidates:
-            break
-            
-        # BFS 遍历
-        queue = deque([(start_cap, {start_cap}, 0)])  # 添加深度跟踪
-        local_visited = set()
-        
-        while queue and len(candidates) < max_candidates:
-            current_cap, path_set, depth = queue.popleft()
-            
-            # 添加当前路径的能力集合作为候选
-            path_tuple = tuple(sorted(path_set))
-            if path_tuple not in visited:
-                visited.add(path_tuple)
-                # 只保留有一定规模的能力集合（2个或以上能力）
-                if len(path_set) >= 2:
-                    candidates.append(path_set.copy())
-            
-            # 限制路径长度和扩展次数
-            if depth < max_path_length and len(path_set) < max_path_length:
-                neighbors = list(graph.get(current_cap, set()))
-                # 限制每层扩展的邻居数量，避免过度膨胀
-                for neighbor in neighbors[:10]:  # 最多扩展10个邻居
-                    new_path_set = path_set | {neighbor}
-                    new_path_tuple = tuple(sorted(new_path_set))
-                    if new_path_tuple not in visited and new_path_tuple not in local_visited:
-                        local_visited.add(new_path_tuple)
-                        queue.append((neighbor, new_path_set, depth + 1))
-    
-    # 按能力集合大小排序，优先保留中等规模的组合
-    candidates.sort(key=lambda x: (len(x), sorted(x)))
-    
-    return candidates[:max_candidates]
+    candidates = []
+
+    for cap in dense_graph.keys():
+        if cap not in visited:
+            # BFS / DFS 找到该连通分量
+            component = set()
+            stack = [cap]
+            while stack:
+                node = stack.pop()
+                if node not in component:
+                    component.add(node)
+                    visited.add(node)
+                    stack.extend(dense_graph[node] - component)
+            # 只保留至少两个能力的子图
+            if len(component) >= 2:
+                candidates.append(component)
+
+    # =========================
+    # Step 4: 最小闭包裁剪（可选）
+    # =========================
+    # 对每个候选子图，尝试删除非必要能力
+    # 删除后仍可完成功能 → 删除
+    # 这里留给后续实现或规则/LLM辅助
+    # for comp in candidates:
+    #     comp = minimal_closure(comp, ...)
+
+    # =========================
+    # Step 5: 限制总候选数
+    # =========================
+    candidates = candidates[:max_candidates]
+
+    return candidates
+
+
 
 # =========================================================
 # 4. Minimal closure extraction
@@ -387,7 +458,7 @@ def extract_prototypes(app_name: str, description_path: str, tig_path: str, outp
     print(f"[3/7] 遍历能力图生成候选能力集合...")
     # 遍历能力图生成候选能力集合
     # 限制候选数量防止组合爆炸，max_candidates 控制最大候选集合数
-    candidates = traverse_capability_graph(capability_graph, max_path_length=3, max_candidates=500)
+    candidates = traverse_capability_graph(capability_graph, max_candidates=500)
     print(f"    生成了 {len(candidates)} 个候选能力集合")
     
     print(f"[4/7] 提取最小能力闭包...")

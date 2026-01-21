@@ -202,3 +202,33 @@ def generate_tig_from_utg(utg_nodes: List[UTGNode], utg_edges: List[UTGEdge]):
     }        
 
 ```
+
+
+
+## Part II
+已经完成“TIG”的生成，如何让其完成下游任务？
+
+
+具体步骤：
+1. 节点锚定 (Node Grounding / Alignment)：目标： 确定 Agent 当前在 App B 的哪个界面，对应 TIG 上的哪个 Node。
+
+2. 路径规划 (Path Planning)：目标： 用户下达任务“播放一首周杰伦的歌”。Planner 在 TIG 上计算路径。
+输入： 起点 TIG_HOME_HUB，终点 TIG_PLAYBACK_CONTROL (隐式包含播放能力)。
+算法： 在 TIG 上运行 Dijkstra 或 BFS。
+
+3. 动作落地 (Action Grounding / Translation)
+目标： 将 TIG 路径中的第一步抽象动作，翻译成 App B 上的具体点击。
+
+4. 偏差修正与在线学习 (Deviation Handling & Online Refinement)
+目标： 如果 App B 的流程和 TIG 不完全一样怎么办？
+情况 A：路径更短。
+Agent 在 TIG_HOME_HUB 直接看到了“周杰伦”的推荐卡片。
+Agent 发现当前界面具备 Play(item) 的能力（这是 TIG 节点能力的一部分）。
+决策： 跳过搜索步骤，直接触发 Play，完成任务。
+TIG 价值： TIG 提供了能力的“快捷方式”。
+
+情况 B：路径更长（需要探索）。
+TIG 说 Home $\to$ Search。但 App B 在 Home 上没找到搜索入口。
+探索策略： Agent 检查 App B 的其他入口（如“发现”Tab）。
+更新映射： Agent 发现点击“发现”Tab 后到达了 TIG_SEARCH_MODE。
+在线修补： 在 TIG 上（针对 App B 的实例）插入一条中间边：Home $\to$ Discover_Tab $\to$ Search。

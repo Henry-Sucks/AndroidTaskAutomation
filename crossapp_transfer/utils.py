@@ -1,6 +1,6 @@
 import json
 from pathlib import Path
-from typing import Any, Dict, List
+from typing import Any, Dict, List, Optional
 import re
 import xml.etree.ElementTree as ET
 from collections import defaultdict
@@ -8,6 +8,8 @@ import subprocess
 import hashlib
 from pathlib import Path
 import tempfile
+import numpy as np
+import time
 
 
 # =========================================================
@@ -232,6 +234,311 @@ def _infer_capabilities(node_class: str, node_id: str, node_text: str, node_desc
             deduped.append(cap)
     return deduped
 
+
+# =========================================================
+# TIG匹配相关函数
+# =========================================================
+def _match_screen_to_target_tigs(
+    current_screen: dict,
+    target_tig_ids: List[str],
+    tig_library: Dict[str, Any]
+) -> Dict[str, Any]:
+    """
+    将当前屏幕状态匹配到目标TIG节点列表中
+    
+    该函数模仿 grounder.py 中的 TIGGrounder.ground() 方法，
+    使用语义相似度和关键词匹配来定位当前屏幕对应的TIG节点。
+    
+    Args:
+        current_screen: 当前屏幕状态，包含：
+            - 'xml': 屏幕XML内容
+            - 'screenshot_path': 截图路径（可选）
+            - 'ui_description': UI描述（可选，如果没有会生成）
+        target_tig_ids: 候选的TIG节点ID列表
+        tig_library: TIG库，格式 {tig_id: tig_node_data}
+    
+    Returns:
+        {
+            'matched_tig': str,  # 匹配的TIG ID，如果未匹配则为None
+            'score': float,      # 匹配分数 (0-1)
+            'top_candidates': List[Dict]  # Top-3候选项
+        }
+    """
+    # 如果没有目标TIG或TIG库为空，返回未匹配
+    if not target_tig_ids or not tig_library:
+        return {
+            'matched_tig': None,
+            'score': 0.0,
+            'top_candidates': []
+        }
+    
+    # 1. 获取UI描述（从current_screen获取或生成）
+    ui_description = current_screen.get('ui_description', '')
+    
+    if not ui_description:
+        # 从XML中提取简单的UI描述
+        xml_content = current_screen.get('xml', '')
+        ui_description = _extract_ui_description_from_xml(xml_content)
+    
+    # 2. 将UI描述转换为embedding
+    ui_embedding = _text_to_embedding_simple(ui_description)
+    
+    # 3. 遍历目标TIG节点计算相似度
+    scores = []
+    for tig_id in target_tig_ids:
+        if tig_id not in tig_library:
+            continue
+        
+        tig_node = tig_library[tig_id]
+        
+        # 计算相似度分数
+        score = _compute_tig_similarity_score(
+            ui_description,
+            ui_embedding,
+            tig_node
+        )
+        
+        scores.append({
+            'tig_id': tig_id,
+            'score': score,
+            'intent_label': tig_node.get('intent_label', ''),
+        })
+    
+    # 4. 按分数排序
+    scores.sort(key=lambda x: x['score'], reverse=True)
+    
+    # 5. 获取最佳匹配
+    similarity_threshold = 0.60  # 相似度阈值（比grounder.py稍低，因为是在限定范围内匹配）
+    
+    if scores and scores[0]['score'] >= similarity_threshold:
+        best_match = scores[0]
+        return {
+            'matched_tig': best_match['tig_id'],
+            'score': best_match['score'],
+            'top_candidates': scores[:3]
+        }
+    else:
+        return {
+            'matched_tig': None,
+            'score': scores[0]['score'] if scores else 0.0,
+            'top_candidates': scores[:3] if scores else []
+        }
+
+
+def _extract_ui_description_from_xml(xml_content: str) -> str:
+    """
+    从XML内容中提取简单的UI描述
+    
+    Args:
+        xml_content: 屏幕XML内容
+        
+    Returns:
+        UI功能描述字符串
+    """
+    if not xml_content:
+        return "Unknown screen"
+    
+    try:
+        root = ET.fromstring(xml_content)
+    except ET.ParseError:
+        return "Unknown screen"
+    
+    # 收集关键信息
+    texts = []
+    content_descs = []
+    resource_ids = []
+    
+    for node in root.iter():
+        attrib = node.attrib if hasattr(node, 'attrib') else {}
+        
+        text = attrib.get('text', '').strip()
+        if text and len(text) > 0:
+            texts.append(text)
+        
+        desc = attrib.get('content-desc', '').strip()
+        if desc and len(desc) > 0:
+            content_descs.append(desc)
+        
+        res_id = attrib.get('resource-id', '').strip()
+        if res_id and '/' in res_id:
+            # 提取ID的简短部分，如 com.app:id/search -> search
+            res_id = res_id.split('/')[-1]
+            resource_ids.append(res_id)
+    
+    # 构建描述
+    description_parts = []
+    
+    # 从resource-id推断功能
+    id_keywords = set()
+    for res_id in resource_ids[:20]:  # 只取前20个
+        id_keywords.update(res_id.lower().split('_'))
+    
+    if id_keywords:
+        description_parts.append(f"UI elements: {', '.join(list(id_keywords)[:10])}")
+    
+    # 从文本内容推断
+    if texts:
+        description_parts.append(f"Text content: {', '.join(texts[:5])}")
+    
+    # 从content-desc推断
+    if content_descs:
+        description_parts.append(f"Descriptions: {', '.join(content_descs[:5])}")
+    
+    return '. '.join(description_parts) if description_parts else "Unknown screen"
+
+
+def _text_to_embedding_simple(text: str) -> np.ndarray:
+    """
+    将文本转换为简单的embedding向量（基于hash的fallback实现）
+    
+    这是一个简化版本，用于在没有API访问的情况下工作。
+    在生产环境中，应该使用真实的embedding API。
+    
+    Args:
+        text: 输入文本
+        
+    Returns:
+        384维的embedding向量
+    """
+    # 使用hash方法生成确定性向量
+    hash_obj = hashlib.sha256(text.encode('utf-8'))
+    hash_bytes = hash_obj.digest()
+    
+    # 转换为384维向量
+    vector = np.frombuffer(hash_bytes, dtype=np.uint8)
+    vector = np.tile(vector, (384 // len(vector) + 1))[:384]
+    
+    # 归一化
+    vector = vector.astype(np.float32)
+    vector = vector / (np.linalg.norm(vector) + 1e-8)
+    
+    return vector
+
+
+def _compute_tig_similarity_score(
+    ui_description: str,
+    ui_embedding: np.ndarray,
+    tig_node: Dict[str, Any]
+) -> float:
+    """
+    计算UI描述与TIG节点的相似度分数
+    
+    Args:
+        ui_description: UI文本描述
+        ui_embedding: UI描述的embedding向量
+        tig_node: TIG节点数据
+        
+    Returns:
+        相似度分数 (0-1)
+    """
+    # A. 生成TIG节点的描述和embedding
+    tig_description = _create_tig_node_description(tig_node)
+    tig_embedding = _text_to_embedding_simple(tig_description)
+    
+    # B. 计算语义相似度
+    sem_sim = _cosine_similarity(ui_embedding, tig_embedding)
+    
+    # C. 计算关键词匹配分数
+    keyword_score = _compute_keyword_match_for_tig(ui_description, tig_node)
+    
+    # D. 加权融合
+    final_score = 0.7 * sem_sim + 0.3 * keyword_score
+    
+    return final_score
+
+
+def _create_tig_node_description(tig_node: Dict[str, Any]) -> str:
+    """
+    为TIG节点创建文本描述
+    
+    Args:
+        tig_node: TIG节点数据
+        
+    Returns:
+        节点的文本描述
+    """
+    intent_label = tig_node.get('intent_label', '')
+    capabilities = tig_node.get('capabilities', [])
+    ui_description = tig_node.get('ui_description', '')
+    
+    desc = f"Intent: {intent_label}\n"
+    if ui_description:
+        desc += f"Description: {ui_description}\n"
+    if capabilities:
+        desc += f"Capabilities: {', '.join(capabilities[:10])}"
+    
+    return desc
+
+
+def _compute_keyword_match_for_tig(ui_description: str, tig_node: Dict[str, Any]) -> float:
+    """
+    计算UI描述与TIG节点的关键词匹配分数
+    
+    Args:
+        ui_description: UI描述
+        tig_node: TIG节点数据
+        
+    Returns:
+        关键词匹配分数 (0-1)
+    """
+    ui_desc_lower = ui_description.lower()
+    
+    # 1. Intent Label匹配
+    intent_label = tig_node.get('intent_label', '')
+    intent_keywords = intent_label.lower().replace('_', ' ').split()
+    intent_matches = sum(1 for kw in intent_keywords if kw in ui_desc_lower and len(kw) > 2)
+    intent_score = intent_matches / len(intent_keywords) if intent_keywords else 0
+    
+    # 2. Capabilities匹配
+    capabilities = tig_node.get('capabilities', [])
+    capability_matches = 0
+    for cap in capabilities[:20]:  # 只检查前20个能力
+        cap_lower = cap.lower()
+        # 提取能力中的关键词
+        cap_keywords = cap_lower.replace('(', ' ').replace(')', ' ').replace('_', ' ').split()
+        if any(kw in ui_desc_lower for kw in cap_keywords if len(kw) > 3):
+            capability_matches += 1
+    
+    capability_score = capability_matches / min(20, len(capabilities)) if capabilities else 0
+    
+    # 3. UI Description匹配（如果TIG节点有ui_description字段）
+    ui_desc_score = 0.0
+    tig_ui_desc = tig_node.get('ui_description', '').lower()
+    if tig_ui_desc:
+        tig_keywords = set(tig_ui_desc.split())
+        ui_keywords = set(ui_desc_lower.split())
+        if tig_keywords and ui_keywords:
+            overlap = len(tig_keywords & ui_keywords)
+            ui_desc_score = overlap / len(tig_keywords | ui_keywords)
+    
+    # 综合分数
+    keyword_score = 0.4 * intent_score + 0.4 * capability_score + 0.2 * ui_desc_score
+    
+    return keyword_score
+
+
+def _cosine_similarity(vec1: np.ndarray, vec2: np.ndarray) -> float:
+    """
+    计算两个向量的余弦相似度
+    
+    Args:
+        vec1: 向量1
+        vec2: 向量2
+        
+    Returns:
+        余弦相似度 (0-1)
+    """
+    dot_product = np.dot(vec1, vec2)
+    norm1 = np.linalg.norm(vec1)
+    norm2 = np.linalg.norm(vec2)
+    
+    if norm1 == 0 or norm2 == 0:
+        return 0.0
+    
+    similarity = dot_product / (norm1 * norm2)
+    # 将[-1, 1]映射到[0, 1]
+    return (similarity + 1) / 2
+
 # =========================================================
 # 能力映射
 # =========================================================
@@ -253,21 +560,231 @@ def map_prototype_to_screen(proto, available_nodes):
 # =========================================================
 # Guided Exploration
 # =========================================================
-def guided_exploration(proto, action_mapping):
+def guided_exploration(proto, initial_screen_state, tig_library):
     """
-    在新 App 中执行 Prototype 的功能
+    Execute a Functional Prototype with TIG-based Context Awareness
+    
     Args:
-        proto: Prototype 对象
-        action_mapping: 能力到节点的映射
+        tig_library: A dictionary of all TIG definitions {tig_id: tig_node_data}
     """
-    # 实现：
-    # 1. 遍历 proto['core_capabilities']
-    # 2. 执行动作（click / swipe / input）
-    # 3. 获取屏幕反馈
-    # 4. 如果动作失败，尝试 guided exploration：
-    #    - 滑动、回退、重新定位节点
-    # 5. 更新当前屏幕状态
-    ...
+    current_screen = initial_screen_state
+
+    for step in proto["steps"]:
+        step_completed = False
+        retry_budget = 5
+
+        print(f"--- Starting Step: {step['step']} ---")
+
+        while not step_completed and retry_budget > 0:
+            
+            # ============================================================
+            # Phase 0: 🔍 Context Perception (环境感知 & TIG 匹配)
+            # ============================================================
+            # 获取当前步骤支持的 TIG 列表 (即：我们应该在哪里？)
+            target_tig_ids = step.get("supporting_tig_nodes", [])
+            
+            # 计算当前屏幕与目标 TIG 的匹配情况
+            context_match = _match_screen_to_target_tigs(
+                current_screen, 
+                target_tig_ids, 
+                tig_library
+            )
+            
+            print(f"Current Context Match: {context_match['matched_tig']} "
+                  f"(Confidence: {context_match['score']:.2f})")
+
+            # ============================================================
+            # Phase 1: 🧠 Decision Making (基于上下文的决策)
+            # ============================================================
+            # 如果不在正确的 TIG 中，capability 选择器可能会优先选择 "Navigation" 动作
+            capability = _select_capability_for_step(
+                step, 
+                current_screen, 
+                context_match  # <--- 传入感知结果
+            )
+
+            # ============================================================
+            # Phase 2: 🛠️ Grounding (动作映射)
+            # ============================================================
+            candidate_actions = _map_capability_to_actions(
+                capability,
+                current_screen,
+                step_config=step  # 传入 step 配置以获取 exploration_strategy
+            )
+
+            # ============================================================
+            # Phase 3: ⚡ Execution & Feedback (执行与反馈)
+            # ============================================================
+            result = _execute_actions_with_feedback(
+                candidate_actions,
+                current_screen
+            )
+
+            # ============================================================
+            # Phase 4: ✅ Verification (验证)
+            # ============================================================
+            if _evaluate_step_completion(step, result):
+                current_screen = result.new_screen_state
+                step_completed = True
+                break
+
+            # ============================================================
+            # Phase 5: 🚑 Recovery (基于 TIG 的恢复)
+            # ============================================================
+            current_screen = _guided_recovery(
+                step,
+                result,
+                current_screen,
+                context_match # <--- 恢复策略也依赖于“我在哪”
+            )
+            retry_budget -= 1
+
+        if not step_completed:
+            raise RuntimeError(f"Step failed: {step['step']}")
+
+    return True
+
+
+def _select_capability_for_step(step, screen_state):
+    """
+    根据当前屏幕状态，选择当前 step 可以执行的能力
+    Args:
+        step: Prototype 中的一个 step 字典
+        current_screen: 当前屏幕状态（解析后的 XML / 节点信息）
+    Returns:
+        能力名 (str) 或 None
+    """
+
+    # 1️⃣ 尝试 required_capabilities
+    for cap in step.get("required_capabilities", []):
+        if is_capability_applicable(cap, current_screen):
+            return cap
+
+    # 2️⃣ 尝试 optional_capabilities
+    for cap in step.get("optional_capabilities", []):
+        if is_capability_applicable(cap, current_screen):
+            return cap
+
+    # 3️⃣ 没有可执行能力
+    return None
+
+def _map_capability_to_actions(capability, current_screen):
+    # 1. 提取当前屏幕所有可交互组件
+    elements = current_screen.get_interactable_elements()
+    
+    # 2. 语义打分 (基于 LLM 或 Embedding)
+    scores = []
+    for elem in elements:
+        score = semantic_model.calculate_similarity(
+            capability.description, 
+            elem.metadata # 包含 text, content-desc, id
+        )
+        scores.append((elem, score))
+    
+    # # 3. 引入 Memory 偏置 (方向一)
+    # scores = adjust_scores_with_memory(scores, capability)
+    
+    # 4. 排序并选择 Top-K 候选项
+    best_candidates = sorted(scores, key=lambda x: x[1], reverse=True)[:3]
+    
+    # 5. 封装为可执行的 Action 对象 (方向二：处理异构 UI)
+    actions = [Action(type=capability.type, target=c[0], params=capability.params) 
+               for c in best_candidates]
+    
+    return actions
+
+class ExecutionResult:
+    def __init__(self, success, new_screen_state, message=""):
+        self.success = success
+        self.new_screen_state = new_screen_state
+        self.message = message
+
+def _execute_actions_with_feedback(candidate_actions, current_screen_xml):
+    """
+    使用 ADB + UiAutomator 执行动作并捕获反馈
+    """
+    # 0. 选取置信度最高的动作 (假设 candidate_actions 已排序)
+    action = candidate_actions[0]
+    
+    # 1. 执行动作 (Action Execution)
+    try:
+        if action.type == "CLICK":
+            # 这里的 target 必须包含坐标 bounds，例如 "[100,200][300,400]"
+            center_x, center_y = _get_center_from_bounds(action.target.bounds)
+            _adb_click(center_x, center_y)
+            
+        elif action.type == "INPUT":
+            # 先点击聚焦，再输入
+            center_x, center_y = _get_center_from_bounds(action.target.bounds)
+            _adb_click(center_x, center_y)
+            time.sleep(0.5) 
+            _adb_input_text(action.params['text'])
+            
+        elif action.type == "SCROLL":
+            _adb_swipe(action.params['start_x'], action.params['start_y'], 
+                       action.params['end_x'], action.params['end_y'])
+    except Exception as e:
+        return ExecutionResult(False, current_screen_xml, f"ADB Error: {str(e)}")
+
+    # 2. 等待 UI 稳定 (Stabilization)
+    # 这是一个关键参数，通常 UI 响应在 0.5s - 2.0s 之间
+    time.sleep(2.0)
+
+    # 3. 获取新状态 (State Capture)
+    new_screen_xml = _get_ui_hierarchy()
+
+    # 4. 生成反馈 (Feedback Generation)
+    # 比较新旧 XML 的哈希值或关键节点数量来判断页面是否变化
+    has_changed = _compare_states(current_screen_xml, new_screen_xml)
+    
+    if has_changed:
+        return ExecutionResult(True, new_screen_xml, "UI State Changed")
+    else:
+        # 如果页面没变，可能是操作失败，或者操作本身不产生视觉变化（如复制文本）
+        return ExecutionResult(False, new_screen_xml, "No Visual Change Detected")
+
+# --- Helper Functions (底层 ADB 封装) ---
+
+def _adb_click(x, y):
+    cmd = f"adb shell input tap {x} {y}"
+    subprocess.run(cmd, shell=True)
+
+def _adb_input_text(text):
+    # 注意：adb input text 不支持中文和空格，建议使用 'adb shell input keyevent' 或 ADBKeyboard
+    # 这里做简单处理，将空格替换为 %s
+    safe_text = text.replace(" ", "%s") 
+    cmd = f"adb shell input text {safe_text}"
+    subprocess.run(cmd, shell=True)
+
+def _adb_swipe(x1, y1, x2, y2, duration=300):
+    cmd = f"adb shell input swipe {x1} {y1} {x2} {y2} {duration}"
+    subprocess.run(cmd, shell=True)
+
+def _get_ui_hierarchy():
+    """
+    获取当前的 XML 结构。
+    注意：这是最耗时的步骤，通常需要 1-2 秒。
+    """
+    # 1. Dump 到手机临时文件
+    subprocess.run("adb shell uiautomator dump /sdcard/window_dump.xml", shell=True)
+    # 2. Pull 到本地
+    subprocess.run("adb pull /sdcard/window_dump.xml ./temp_dump.xml", shell=True)
+    # 3. 读取内容
+    with open("./temp_dump.xml", "r", encoding="utf-8") as f:
+        return f.read()
+
+def _get_center_from_bounds(bounds_str):
+    # 解析 "[x1,y1][x2,y2]"
+    import re
+    coords = re.findall(r"\d+", bounds_str)
+    x1, y1, x2, y2 = map(int, coords)
+    return (x1 + x2) // 2, (y1 + y2) // 2
+
+def _compare_states(old_xml, new_xml):
+    # 简单实现：比较字符串长度或 Hash
+    # 进阶实现：构建 DOM 树，计算 Tree Edit Distance (树编辑距离)
+    return hash(old_xml) != hash(new_xml)
+
 
 # =========================================================
 # 执行验证

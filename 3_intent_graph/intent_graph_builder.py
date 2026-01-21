@@ -12,6 +12,7 @@ class TIGNode:
     """Task Intent Graph Node"""
     id: str  # hash_id
     intent_label: str
+    ui_description: str = ""
     mapped_utg_ids: List[str] = field(default_factory=list)
     capabilities: Set[str] = field(default_factory=set)
     
@@ -20,6 +21,7 @@ class TIGNode:
         return {
             "id": self.id,
             "intent_label": self.intent_label,
+            "ui_description": self.ui_description,
             "mapped_utg_ids": self.mapped_utg_ids,
             "capabilities": sorted(list(self.capabilities))
         }
@@ -186,11 +188,13 @@ class IntentGraphBuilder:
 **Task:**
 1. Determine a high-level **intent_label** that describes this screen's primary purpose (e.g., "Playback_Control", "Search_Mode", "Settings_Menu", "Library_Browse").
 2. If this screen is purely decorative, loading, or advertising content with no functional purpose, return "NOISE" as the intent_label.
-3. Extract a list of **capabilities** - functional actions the user can perform from this screen (e.g., "Play_Song", "Search_Music", "Adjust_Equalizer").
+3. Write a concise **ui_description** (1-2 sentences) explaining what this screen allows the user to do and its main visual/functional characteristics.
+4. Extract a list of **capabilities** - functional actions the user can perform from this screen (e.g., "Play_Song", "Search_Music", "Adjust_Equalizer").
 
 **Output Format (JSON only, no additional text):**
 {{
   "intent_label": "Playback_Control",
+  "ui_description": "This screen provides playback controls for the currently playing song, with play/pause button, track progress bar, and volume controls.",
   "capabilities": ["Play_Song", "Pause_Song", "Next_Track", "Previous_Track", "Adjust_Volume"]
 }}"""
         
@@ -208,58 +212,59 @@ class IntentGraphBuilder:
             print(f"Error in LLM analysis: {e}")
             return {"intent_label": "ERROR", "capabilities": []}
     
-    def llm_analyze_semantics(self, node_summary: Dict, edge_summaries: List[Dict]) -> Dict:
-        """
-        Phase 1: Analyze node intent and capabilities using LLM
+#     def llm_analyze_semantics(self, node_summary: Dict, edge_summaries: List[Dict]) -> Dict:
+#         """
+#         Phase 1: Analyze node intent and capabilities using LLM
         
-        Args:
-            node_summary: Summary of the current node
-            edge_summaries: Summaries of all outgoing edges
+#         Args:
+#             node_summary: Summary of the current node
+#             edge_summaries: Summaries of all outgoing edges
             
-        Returns:
-            Dict with "intent_label" and "capabilities"
-        """
-        # Build prompt
-        prompt = f"""You are analyzing a UI screen in an Android app to determine its semantic intent.
+#         Returns:
+#             Dict with "intent_label" and "capabilities"
+#         """
+#         # Build prompt
+#         prompt = f"""You are analyzing a UI screen in an Android app to determine its semantic intent.
 
-**Current Screen:**
-- Screen Type: {node_summary.get('screen_type', 'Unknown')}
-- Primary Intent: {node_summary.get('primary_intent', 'Unknown')}
-- Main Content: {node_summary.get('main_content', 'Unknown')}
-- State Summary: {node_summary.get('state_summary', 'Unknown')}
+# **Current Screen:**
+# - Screen Type: {node_summary.get('screen_type', 'Unknown')}
+# - Primary Intent: {node_summary.get('primary_intent', 'Unknown')}
+# - Main Content: {node_summary.get('main_content', 'Unknown')}
+# - State Summary: {node_summary.get('state_summary', 'Unknown')}
 
-**Available Actions from this screen:**
-"""
+# **Available Actions from this screen:**
+# """
         
-        for i, edge_sum in enumerate(edge_summaries, 1):
-            prompt += f"\n{i}. {edge_sum.get('intent_summary', 'Unknown action')}"
-            if 'semantic_edge' in edge_sum:
-                prompt += f" (Function: {edge_sum['semantic_edge'].get('function_signature', 'N/A')})"
+#         for i, edge_sum in enumerate(edge_summaries, 1):
+#             prompt += f"\n{i}. {edge_sum.get('intent_summary', 'Unknown action')}"
+#             if 'semantic_edge' in edge_sum:
+#                 prompt += f" (Function: {edge_sum['semantic_edge'].get('function_signature', 'N/A')})"
         
-        prompt += """
+#         prompt += """
 
-**Task:**
-1. Determine a high-level **intent_label** that describes this screen's primary purpose (e.g., "Playback_Control", "Search_Mode", "Settings_Menu", "Library_Browse").
-2. If this screen is purely decorative, loading, or advertising content with no functional purpose, return "NOISE" as the intent_label.
-3. Extract a list of **capabilities** based on the available actions.
+# **Task:**
+# 1. Determine a high-level **intent_label** that describes this screen's primary purpose (e.g., "Playback_Control", "Search_Mode", "Settings_Menu", "Library_Browse").
+# 2. If this screen is purely decorative, loading, or advertising content with no functional purpose, return "NOISE" as the intent_label.
+# 3. Extract a list of **capabilities** based on the available actions.
 
-**Output Format (JSON only, no additional text):**
-{{
-  "intent_label": "Playback_Control",
-  "capabilities": ["Play_Song", "Pause_Song", "Next_Track", "Adjust_Volume"]
-}}"""
+# **Output Format (JSON only, no additional text):**
+# {{
+#   "intent_label": "Playback_Control",
+#   ::
+#   "capabilities": ["Play_Song", "Pause_Song", "Next_Track", "Adjust_Volume"]
+# }}"""
         
-        try:
-            response = self.llm_client.run(prompt, temperature=0.3)
-            json_match = re.search(r'\{.*\}', response, re.DOTALL)
-            if json_match:
-                return json.loads(json_match.group())
-            else:
-                print(f"Warning: Could not parse LLM response for node")
-                return {"intent_label": "UNKNOWN", "capabilities": []}
-        except Exception as e:
-            print(f"Error in LLM analysis: {e}")
-            return {"intent_label": "ERROR", "capabilities": []}
+#         try:
+#             response = self.llm_client.run(prompt, temperature=0.3)
+#             json_match = re.search(r'\{.*\}', response, re.DOTALL)
+#             if json_match:
+#                 return json.loads(json_match.group())
+#             else:
+#                 print(f"Warning: Could not parse LLM response for node")
+#                 return {"intent_label": "UNKNOWN", "capabilities": []}
+#         except Exception as e:
+#             print(f"Error in LLM analysis: {e}")
+#             return {"intent_label": "ERROR", "capabilities": []}
     
     def llm_analyze_action(self, edge_summary: Dict, source_tig: TIGNode, target_tig: TIGNode) -> Tuple[str, str]:
         """
@@ -396,6 +401,7 @@ class IntentGraphBuilder:
                 tig_nodes_dict[label] = TIGNode(
                     id=f"TIG_{label.upper()}",
                     intent_label=label,
+                    ui_description=info.get('ui_description', ''),
                     mapped_utg_ids=[],
                     capabilities=set()
                 )
@@ -405,6 +411,9 @@ class IntentGraphBuilder:
             tig_node = tig_nodes_dict[label]
             tig_node.mapped_utg_ids.append(u_node_id)
             tig_node.capabilities.update(info.get('capabilities', []))
+            # Update ui_description if it's more detailed
+            if not tig_node.ui_description and info.get('ui_description'):
+                tig_node.ui_description = info.get('ui_description', '')
         
         print(f"  Total TIG nodes created: {len(tig_nodes_dict)}")
         

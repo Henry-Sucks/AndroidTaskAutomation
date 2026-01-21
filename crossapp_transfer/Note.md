@@ -19,3 +19,8 @@ FOR each step in prototype.steps:
 然而，后续还会涉及到对页面内某个元素的定位与操作（点击、输入、滑动、长按、返回等等），以上是否还支持？
 
 
+完成了parse_current_screen
+
+第二步：完成guided_exploration
+难点：guided_exploration中的_map_capability_to_actions怎么实现？
+我觉得必须重新思考一下

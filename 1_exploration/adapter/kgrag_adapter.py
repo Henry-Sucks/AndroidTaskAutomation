@@ -377,6 +377,6 @@ def main():
 
 if __name__ == "__main__":
     # 示例用法（取消注释以直接运行）
-    input_folder = "C:\\Projects\\AndroidTaskAutomation\\1_exploration\\results\\NetEase Cloud Music"
-    package_name = "com.netease.cloudmusic"
+    input_folder = "C:\\Projects\\AndroidTaskAutomation\\1_exploration\\results\\Music Player"
+    package_name = "com.simplemobiletools.musicplayer"
     convert_kgrag_to_utg(input_folder, package_name)
