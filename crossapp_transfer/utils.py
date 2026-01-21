@@ -645,53 +645,334 @@ def guided_exploration(proto, initial_screen_state, tig_library):
     return True
 
 
-def _select_capability_for_step(step, screen_state):
+from dataclasses import dataclass
+from typing import List, Optional
+
+@dataclass
+class CapabilityDecision:
+    name: str                  # 能力名称，如 "SelectTrack"
+    type: str                  # "EXECUTION" (执行任务) 或 "NAVIGATION" (修正路径)
+    confidence: float          # 决策置信度
+    reason: str                # 决策理由 (用于 Debug 或 Paper Case Study)
+
+def _select_capability_for_step(step, current_screen, context_match) -> CapabilityDecision:
     """
-    根据当前屏幕状态，选择当前 step 可以执行的能力
-    Args:
-        step: Prototype 中的一个 step 字典
-        current_screen: 当前屏幕状态（解析后的 XML / 节点信息）
-    Returns:
-        能力名 (str) 或 None
+    Phase 1: Decision Making
+    根据当前环境匹配度 (TIG Match) 和 步骤定义，选择最优能力。
     """
 
-    # 1️⃣ 尝试 required_capabilities
-    for cap in step.get("required_capabilities", []):
-        if is_capability_applicable(cap, current_screen):
-            return cap
+    # 阈值定义 (可以在论文 Experiment Setup 中列出)
+    CONTEXT_THRESHOLD = 0.6  # 只有环境匹配分高于此，才敢执行核心任务
 
-    # 2️⃣ 尝试 optional_capabilities
-    for cap in step.get("optional_capabilities", []):
-        if is_capability_applicable(cap, current_screen):
-            return cap
+    # 1. 获取候选能力列表
+    required_caps = step.get("required_capabilities", [])
+    optional_caps = step.get("optional_capabilities", [])
 
-    # 3️⃣ 没有可执行能力
+    # ============================================================
+    # Scenario A: 我们在正确的地方 (High Context Confidence)
+    # ============================================================
+    if context_match["score"] >= CONTEXT_THRESHOLD:
+        
+        # 优先检查 "必须能力" (Required)
+        for cap_name in required_caps:
+            # 这里的 feasibility check 是轻量级的，只看文本/图标是否存在，不做精确坐标映射
+            if _is_capability_feasible(cap_name, current_screen):
+                return CapabilityDecision(
+                    name=cap_name,
+                    type="EXECUTION",
+                    confidence=0.9,
+                    reason=f"Context matches ({context_match['matched_tig']}) and capability '{cap_name}' features found."
+                )
+
+        # 如果必须能力不可行 (例如：列表可能是空的)，检查 "可选能力"
+        for cap_name in optional_caps:
+            if _is_capability_feasible(cap_name, current_screen):
+                return CapabilityDecision(
+                    name=cap_name,
+                    type="EXECUTION",
+                    confidence=0.7,
+                    reason="Required caps missing, falling back to optional capability."
+                )
+        
+        # 如果环境对，但啥能力都执行不了 -> 触发局部探索 (Local Exploration)
+        # 例如：在歌单页，但没看到歌 -> 决定 "Scroll_Down"
+        strategy = step.get("exploration_strategy", "default")
+        if "scroll" in strategy:
+            return CapabilityDecision(
+                name="Scroll_Explore",
+                type="EXECUTION",
+                confidence=0.6,
+                reason="Context correct but elements missing. Strategy dictates scrolling."
+            )
+    
+    # ============================================================
+    # Scenario B: 我们在错误的地方 (Low Context Confidence)
+    # ============================================================
+    else:
+        # 此时 Agent 迷路了，或者刚启动 App。
+        # 决策目标从 "完成任务" 切换为 "寻找目标环境"。
+        
+        target_tigs = step.get("supporting_tig_nodes", [])
+        print(f"⚠️ Context Mismatch! Current score: {context_match['score']}. Seeking TIGs: {target_tigs}")
+
+        # 策略 1: 检查当前屏幕是否有通往目标的 "导航锚点"
+        # 例如：我们在 "Home"，目标是 "Library"，我们要找 "Library" 的 Tab
+        nav_cap = _find_navigation_capability(current_screen, target_tigs)
+        if nav_cap:
+            return CapabilityDecision(
+                name=nav_cap,
+                type="NAVIGATION",
+                confidence=0.8,
+                reason=f"Detected navigation path to target TIG."
+            )
+            
+        # 策略 2: 通用回溯 (Backtrack)
+        # 如果不知道去哪，通常 "Back" 或者 "Go Home" 是最安全的
+        return CapabilityDecision(
+            name="Navigate_Back_Or_Home",
+            type="NAVIGATION",
+            confidence=0.5,
+            reason="Lost context. Initiating recovery navigation."
+        )
+
+    # ============================================================
+    # Fallback: 实在没招了
+    # ============================================================
+    return CapabilityDecision(
+        name="No_Op",
+        type="WAIT",
+        confidence=0.0,
+        reason="No feasible capabilities found."
+    )
+
+def _is_capability_feasible(cap_name, current_screen):
+    """
+    轻量级可行性分析。
+    不需要调用昂贵的视觉模型，只做关键词匹配。
+    """
+    # 将 Capability 驼峰转关键词: "SelectTrack" -> {"select", "track"}
+    keywords = _parse_keywords_from_cap(cap_name) 
+    
+    # 简单规则：如果 Capability 的关键词在屏幕文本中出现，就认为"可行"
+    # 这比 Phase 2 的 Grounding 要宽容得多
+    screen_text = current_screen.get_all_text().lower()
+    
+    # 特例处理
+    if "scroll" in cap_name.lower(): return True # 滚动通常总是可行的
+    
+    # 检查是否有重合
+    for kw in keywords:
+        if kw in screen_text:
+            return True
+            
+    return False
+
+def _find_navigation_capability(current_screen, target_tigs):
+    """
+    在当前屏幕寻找能否跳到 target_tigs 的入口
+    """
+    # 这是一个简化版。在实际论文中，这里可以查询 TIG 图的边 (Edges)
+    # 查看是否有 current_tig -> target_tig 的已知路径
+    
+    screen_text = current_screen.get_all_text().lower()
+    
+    # 启发式规则：如果目标 TIG 叫 "Library_Browse"，看看屏幕上有没有 "Library" 这个词
+    for tig_id in target_tigs:
+        # 假设 TIG ID 里包含了线索，如 "TIG_LIBRARY_BROWSE" -> "library"
+        clue = tig_id.split("_")[1].lower() 
+        if clue in screen_text:
+            return f"NavigateTo({clue.capitalize()})"
+            
     return None
 
-def _map_capability_to_actions(capability, current_screen):
-    # 1. 提取当前屏幕所有可交互组件
-    elements = current_screen.get_interactable_elements()
+def _parse_keywords_from_cap(cap_name):
+    # 简单的字符串处理
+    import re
+    # Split by uppercase: SelectTrack -> Select, Track
+    words = re.findall(r'[A-Z][a-z]*', cap_name)
+    return [w.lower() for w in words]
+
+
+
+
+from dataclasses import dataclass, field
+from typing import Dict, Any, List
+
+@dataclass
+class Action:
+    type: str                  # "CLICK", "SCROLL", "INPUT", "KEY_EVENT", "WAIT"
+    target: Optional[Any] = None # UI Element 对象 (包含 bounds, text 等)
+    params: Dict[str, Any] = field(default_factory=dict) # 额外参数, 如 scroll_dir, input_text
+    description: str = ""      # 用于日志和调试
+
+    def __repr__(self):
+        return f"[Action: {self.type}] {self.description}"
+
+
+
+def _map_capability_to_actions(decision, current_screen, step_config):
+    """
+    Phase 2: Visual Grounding
+    将抽象的 CapabilityDecision 映射为具体的 UI 动作。
     
-    # 2. 语义打分 (基于 LLM 或 Embedding)
-    scores = []
-    for elem in elements:
-        score = semantic_model.calculate_similarity(
-            capability.description, 
-            elem.metadata # 包含 text, content-desc, id
-        )
-        scores.append((elem, score))
+    Args:
+        decision (CapabilityDecision): Phase 1 的输出
+        current_screen: 当前屏幕状态 (Wrapper of XML/Hierarchy)
+        step_config: 当前步骤的完整 JSON 配置
+    """
+    actions = []
+    cap_name = decision.name
     
-    # # 3. 引入 Memory 偏置 (方向一)
-    # scores = adjust_scores_with_memory(scores, capability)
+    print(f"🛠️ Grounding Capability: {cap_name} (Type: {decision.type})")
+
+    # ============================================================
+    # Case A: 纯导航/系统动作 (Navigation / System)
+    # ============================================================
+    if "Navigate_Back" in cap_name:
+        # 映射为物理返回键
+        return [Action(type="KEY_EVENT", params={"key": "BACK"}, description="System Back")]
     
-    # 4. 排序并选择 Top-K 候选项
-    best_candidates = sorted(scores, key=lambda x: x[1], reverse=True)[:3]
+    if "Scroll_Explore" in cap_name:
+        # 映射为通用滑动动作
+        return [_generate_heuristic_scroll(current_screen)]
+
+    # ============================================================
+    # Case B: 交互动作 (Interaction - Click/Input)
+    # ============================================================
+    # 1. 提取语义特征 (Semantic Feature Extraction)
+    # 将 "SelectTrack" 拆解为特征词: ["select", "track"]
+    # 将 "Search_Music" 拆解为特征词: ["search", "music"]
+    target_keywords = _extract_semantic_keywords(cap_name)
     
-    # 5. 封装为可执行的 Action 对象 (方向二：处理异构 UI)
-    actions = [Action(type=capability.type, target=c[0], params=capability.params) 
-               for c in best_candidates]
+    # 如果 Step 配置里有具体参数 (比如输入文本)，也提取出来
+    input_text = step_config.get("input_params", {}).get("text", None)
+
+    # 2. 候选元素评分 (Candidate Scoring)
+    # 遍历屏幕上所有可交互元素，计算它们与 target_keywords 的相似度
+    candidates = []
+    interactable_elements = current_screen.get_interactable_elements() # Filter by clickable=true
+
+    for elem in interactable_elements:
+        score = _score_element_relevance(elem, target_keywords)
+        if score > 0:
+            candidates.append((elem, score))
     
+    # 3. 排序与选择 (Ranking & Selection)
+    # 按分数降序排列
+    candidates.sort(key=lambda x: x[1], reverse=True)
+
+    # 4. 动作实例化 (Instantiation)
+    if candidates:
+        best_elem, best_score = candidates[0]
+        
+        # 阈值判定 (Grounding Threshold)
+        # 如果最高分都低于 0.4，说明屏幕上可能根本没有对应的按钮
+        if best_score < 0.4:
+            print(f"⚠️ Low grounding confidence ({best_score:.2f}). Fallback to Scroll.")
+            return [_generate_heuristic_scroll(current_screen)]
+
+        # 确定动作类型
+        action_type = "CLICK"
+        params = {}
+        
+        # 如果 Capability 暗示是输入 (e.g., "Search_Music") 且我们有文本
+        if "Search" in cap_name or "Input" in cap_name:
+            if input_text:
+                action_type = "INPUT"
+                params["text"] = input_text
+            else:
+                # 如果没文本，先点一下聚焦
+                action_type = "CLICK" 
+
+        actions.append(Action(
+            type=action_type,
+            target=best_elem,
+            params=params,
+            description=f"Interact with '{best_elem.text or best_elem.desc}' (Score: {best_score:.2f})"
+        ))
+    
+    else:
+        # 屏幕上没找到任何相关元素 -> 默认滑动探索
+        print("❌ No matching elements found. Generating exploration scroll.")
+        actions.append(_generate_heuristic_scroll(current_screen))
+
     return actions
+
+def _extract_semantic_keywords(cap_name):
+    """
+    从驼峰命名或下划线命名中提取核心词
+    Input: "Select_Song" -> {"select", "song"}
+    """
+    import re
+    # 分割驼峰和下划线
+    words = re.findall(r'[a-zA-Z][a-z]*', cap_name.replace("_", " "))
+    keywords = set(w.lower() for w in words)
+    
+    # 扩展同义词 (Synonym Expansion) - 可以在论文中提到使用了简单的知识库
+    synonyms = {
+        "track": ["song", "music", "audio", "title"],
+        "browse": ["library", "list", "all"],
+        "initiate": ["start", "play"],
+        "playback": ["player", "playing"]
+    }
+    
+    expanded = set(keywords)
+    for k in keywords:
+        if k in synonyms:
+            expanded.update(synonyms[k])
+            
+    return expanded
+
+def _score_element_relevance(elem, target_keywords):
+    """
+    计算 UI 元素与目标意图的关联度 (0.0 - 1.0)
+    """
+    # 1. 提取元素特征
+    elem_text = (elem.text or "").lower()
+    elem_desc = (elem.content_desc or "").lower()
+    elem_id = (elem.resource_id or "").lower()
+    
+    combined_text = f"{elem_text} {elem_desc} {elem_id}"
+    if not combined_text.strip():
+        return 0.0
+
+    # 2. 关键词匹配 (Keyword Matching)
+    match_count = 0
+    for kw in target_keywords:
+        if kw in combined_text:
+            match_count += 1
+            
+            # 精确匹配加分 (Exact Match Bonus)
+            if kw == elem_text or kw == elem_desc:
+                match_count += 1
+
+    # 3. 视觉/属性 加权 (Heuristic Boosting)
+    score = match_count / (len(target_keywords) + 1) # 基础分
+    
+    # 如果找 "Play"，而元素是 ImageButton 且 id 包含 "play"，大幅加分
+    if "play" in target_keywords and "play" in elem_id:
+        score += 0.3
+        
+    return min(score, 1.0)
+
+def _generate_heuristic_scroll(current_screen):
+    """
+    生成一个智能滑动动作
+    """
+    # 默认向上滑 (即浏览下方内容)
+    # 在论文中可以提到：会检测屏幕是否可滑动 (scrollable=true)
+    return Action(
+        type="SCROLL", 
+        params={"start_x": 500, "start_y": 1500, "end_x": 500, "end_y": 500},
+        description="Exploratory Scroll Down"
+    )
+
+
+
+
+
+
+
 
 class ExecutionResult:
     def __init__(self, success, new_screen_state, message=""):

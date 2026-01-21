@@ -24,3 +24,8 @@ FOR each step in prototype.steps:
 第二步：完成guided_exploration
 难点：guided_exploration中的_map_capability_to_actions怎么实现？
 我觉得必须重新思考一下
+
+
+完成 _match_screen_to_target_tigs，需要测试一下？
+完成 _select_capability_for_step，需要测试一下？
+完成 _map_capability_to_actions，需要测试一下？
