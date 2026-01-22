@@ -10,6 +10,8 @@ from pathlib import Path
 import tempfile
 import numpy as np
 import time
+import pickle
+import os
 
 
 # =========================================================
@@ -236,18 +238,88 @@ def _infer_capabilities(node_class: str, node_id: str, node_text: str, node_desc
 
 
 # =========================================================
-# TIG匹配相关函数
+# TIG匹配相关函数 (基于 grounder.py 的实现)
 # =========================================================
+
+# 全局缓存配置
+_EMBEDDING_CACHE_DIR = None
+_VLM_CLIENT = None
+_LLM_CLIENT = None
+
+def _get_embedding_cache_dir():
+    """获取或创建 embedding 缓存目录"""
+    global _EMBEDDING_CACHE_DIR
+    if _EMBEDDING_CACHE_DIR is None:
+        cache_dir = Path(__file__).parent / 'data' / '.embedding_cache'
+        cache_dir.mkdir(parents=True, exist_ok=True)
+        _EMBEDDING_CACHE_DIR = cache_dir
+    return _EMBEDDING_CACHE_DIR
+
+def _get_vlm_client():
+    """获取或创建 VLM 客户端（延迟加载）"""
+    global _VLM_CLIENT
+    if _VLM_CLIENT is None:
+        try:
+            # 尝试导入 VLM 客户端
+            import sys
+            parent_dir = Path(__file__).parent.parent
+            if str(parent_dir) not in sys.path:
+                sys.path.insert(0, str(parent_dir))
+            
+            from clients.vlm_client import VLMClient
+            _VLM_CLIENT = VLMClient()
+        except ImportError:
+            # 静默处理导入错误，使用 fallback
+            _VLM_CLIENT = None
+        except Exception:
+            # 其他错误也静默处理
+            _VLM_CLIENT = None
+    return _VLM_CLIENT
+
+def _get_llm_client():
+    """获取或创建 LLM 客户端（用于 embedding）"""
+    global _LLM_CLIENT
+    if _LLM_CLIENT is None:
+        try:
+            import sys
+            parent_dir = Path(__file__).parent.parent
+            if str(parent_dir) not in sys.path:
+                sys.path.insert(0, str(parent_dir))
+            
+            from clients.llm_client import LLMClient
+            from clients.config import QWEN_VLM_API_KEY
+            
+            _LLM_CLIENT = LLMClient(
+                api_key=QWEN_VLM_API_KEY,
+                base_url="https://dashscope.aliyuncs.com/compatible-mode/v1",
+                model="qwen-vl-max"
+            )
+        except ImportError as e:
+            # 静默处理导入错误，使用 fallback
+            _LLM_CLIENT = None
+        except Exception as e:
+            # 其他错误也静默处理
+            _LLM_CLIENT = None
+    return _LLM_CLIENT
+
 def _match_screen_to_target_tigs(
     current_screen: dict,
     target_tig_ids: List[str],
-    tig_library: Dict[str, Any]
+    tig_library: Dict[str, Any],
+    use_vlm: bool = False,
+    similarity_threshold: float = 0.60
 ) -> Dict[str, Any]:
     """
     将当前屏幕状态匹配到目标TIG节点列表中
     
-    该函数模仿 grounder.py 中的 TIGGrounder.ground() 方法，
+    基于 grounder.py 中的 TIGGrounder.ground() 方法实现，
     使用语义相似度和关键词匹配来定位当前屏幕对应的TIG节点。
+    
+    工作流程：
+    1. 生成UI描述（使用VLM或从XML提取）
+    2. 将UI描述转换为embedding向量
+    3. 遍历目标TIG节点计算相似度（语义相似度 + 关键词匹配）
+    4. 返回最佳匹配结果
     
     Args:
         current_screen: 当前屏幕状态，包含：
@@ -256,6 +328,8 @@ def _match_screen_to_target_tigs(
             - 'ui_description': UI描述（可选，如果没有会生成）
         target_tig_ids: 候选的TIG节点ID列表
         tig_library: TIG库，格式 {tig_id: tig_node_data}
+        use_vlm: 是否使用VLM生成UI描述（默认False，使用XML提取）
+        similarity_threshold: 相似度阈值（默认0.60）
     
     Returns:
         {
@@ -272,16 +346,20 @@ def _match_screen_to_target_tigs(
             'top_candidates': []
         }
     
-    # 1. 获取UI描述（从current_screen获取或生成）
+    # 1. 获取UI描述
     ui_description = current_screen.get('ui_description', '')
     
     if not ui_description:
-        # 从XML中提取简单的UI描述
-        xml_content = current_screen.get('xml', '')
-        ui_description = _extract_ui_description_from_xml(xml_content)
+        if use_vlm and current_screen.get('screenshot_path'):
+            # 使用VLM分析截图生成UI描述
+            ui_description = _analyze_screenshot_with_vlm(current_screen['screenshot_path'])
+        else:
+            # 从XML中提取UI描述
+            xml_content = current_screen.get('xml', '')
+            ui_description = _extract_ui_description_from_xml(xml_content)
     
     # 2. 将UI描述转换为embedding
-    ui_embedding = _text_to_embedding_simple(ui_description)
+    ui_embedding = _text_to_embedding_with_cache(ui_description)
     
     # 3. 遍历目标TIG节点计算相似度
     scores = []
@@ -308,8 +386,6 @@ def _match_screen_to_target_tigs(
     scores.sort(key=lambda x: x['score'], reverse=True)
     
     # 5. 获取最佳匹配
-    similarity_threshold = 0.60  # 相似度阈值（比grounder.py稍低，因为是在限定范围内匹配）
-    
     if scores and scores[0]['score'] >= similarity_threshold:
         best_match = scores[0]
         return {
@@ -323,6 +399,47 @@ def _match_screen_to_target_tigs(
             'score': scores[0]['score'] if scores else 0.0,
             'top_candidates': scores[:3] if scores else []
         }
+
+def _analyze_screenshot_with_vlm(screenshot_path: str) -> str:
+    """
+    使用VLM分析截图，生成UI功能描述
+    
+    Args:
+        screenshot_path: 截图路径
+        
+    Returns:
+        UI描述文本
+    """
+    vlm_client = _get_vlm_client()
+    if vlm_client is None:
+        # 如果VLM客户端不可用，返回fallback描述
+        return "Screen analysis unavailable (VLM client not initialized)"
+    
+    prompt = """Analyze this Android app screenshot and describe its primary purpose and available actions.
+
+Focus on:
+1. What is the main intent/purpose of this screen? (e.g., Search, Playback, Settings, Library Browse)
+2. What are the key interactive elements and their functions?
+3. What capabilities does this screen offer to the user?
+
+Provide a concise description focusing on functional aspects, not visual design details."""
+
+    try:
+        # 确保使用绝对路径
+        abs_screenshot_path = os.path.abspath(screenshot_path)
+        
+        result = vlm_client.run(
+            prompt=prompt,
+            image_url=abs_screenshot_path
+        )
+        
+        # 处理返回值（可能是dict或str）
+        if isinstance(result, dict):
+            return result.get("content", "Unknown screen")
+        return str(result)
+    except Exception:
+        # 静默失败，使用 fallback
+        return "Unknown screen"
 
 
 def _extract_ui_description_from_xml(xml_content: str) -> str:
@@ -387,26 +504,103 @@ def _extract_ui_description_from_xml(xml_content: str) -> str:
     return '. '.join(description_parts) if description_parts else "Unknown screen"
 
 
-def _text_to_embedding_simple(text: str) -> np.ndarray:
+def _text_to_embedding_with_cache(text: str, use_api: bool = True) -> np.ndarray:
     """
-    将文本转换为简单的embedding向量（基于hash的fallback实现）
+    将文本转换为embedding向量，支持API调用和本地缓存
     
-    这是一个简化版本，用于在没有API访问的情况下工作。
-    在生产环境中，应该使用真实的embedding API。
+    基于 grounder.py 的实现，使用阿里云DashScope API并支持缓存。
+    
+    工作流程：
+    1. 生成文本的hash作为缓存key
+    2. 检查本地缓存，如果存在直接返回
+    3. 如果不存在且启用API，调用DashScope embedding API
+    4. 将结果保存到本地缓存
+    5. 如果API失败，使用hash-based fallback
     
     Args:
         text: 输入文本
+        use_api: 是否使用API（默认True）
         
     Returns:
-        384维的embedding向量
+        embedding向量 (np.ndarray)
     """
-    # 使用hash方法生成确定性向量
+    # 1. 生成缓存key（基于文本的hash）
+    text_hash = hashlib.md5(text.encode('utf-8')).hexdigest()
+    cache_dir = _get_embedding_cache_dir()
+    cache_file = cache_dir / f"{text_hash}.pkl"
+    
+    # 2. 检查缓存
+    if cache_file.exists():
+        try:
+            with open(cache_file, 'rb') as f:
+                cached_data = pickle.load(f)
+                return cached_data['embedding']
+        except Exception as e:
+            print(f"⚠️ Warning: Failed to load cache {cache_file.name}: {e}")
+    
+    # 3. 调用embedding API（如果启用）
+    if use_api:
+        llm_client = _get_llm_client()
+        if llm_client is not None:
+            try:
+                vec = llm_client.get_embedding(
+                    text=text,
+                    model="text-embedding-v4",  # 阿里云的embedding模型
+                    dimensions=1024  # 向量维度
+                )
+                
+                if vec is not None:
+                    # L2归一化
+                    vec = vec / (np.linalg.norm(vec) + 1e-8)
+                    
+                    # 保存到缓存
+                    cache_data = {
+                        'text': text[:200],  # 只保存前200字符用于调试
+                        'embedding': vec,
+                        'model': 'text-embedding-v4',
+                        'dimension': len(vec)
+                    }
+                    
+                    with open(cache_file, 'wb') as f:
+                        pickle.dump(cache_data, f)
+                # 静默失败，使用 fallback
+                    return vec
+            except Exception as e:
+                print(f"⚠️ Embedding API error: {e}, using fallback")
+    
+    # 4. Fallback：使用hash方法
+    vec = _hash_based_embedding(text)
+    
+    # 保存fallback结果到缓存
+    cache_data = {
+        'text': text[:200],
+        'embedding': vec,
+        'model': 'hash-based-fallback',
+        'dimension': len(vec)
+    }
+    
+    with open(cache_file, 'wb') as f:
+        pickle.dump(cache_data, f)
+    
+    return vec
+
+def _hash_based_embedding(text: str, dimensions: int = 384) -> np.ndarray:
+    """
+    基于hash的简单embedding（作为API失败时的fallback）
+    
+    Args:
+        text: 输入文本
+        dimensions: 向量维度（默认384）
+        
+    Returns:
+        归一化的向量
+    """
     hash_obj = hashlib.sha256(text.encode('utf-8'))
     hash_bytes = hash_obj.digest()
     
-    # 转换为384维向量
+    # 转换为指定维度的向量
     vector = np.frombuffer(hash_bytes, dtype=np.uint8)
-    vector = np.tile(vector, (384 // len(vector) + 1))[:384]
+    vector = np.tile(vector, (dimensions // len(vector) + 1))[:dimensions]
     
     # 归一化
     vector = vector.astype(np.float32)
@@ -423,6 +617,10 @@ def _compute_tig_similarity_score(
     """
     计算UI描述与TIG节点的相似度分数
     
+    基于 grounder.py 的混合相似度计算方法：
+    - 70% 语义向量相似度（基于embedding的余弦相似度）
+    - 30% 关键词匹配分数（基于文本关键词重合度）
+    
     Args:
         ui_description: UI文本描述
         ui_embedding: UI描述的embedding向量
@@ -433,15 +631,15 @@ def _compute_tig_similarity_score(
     """
     # A. 生成TIG节点的描述和embedding
     tig_description = _create_tig_node_description(tig_node)
-    tig_embedding = _text_to_embedding_simple(tig_description)
+    tig_embedding = _text_to_embedding_with_cache(tig_description)
     
-    # B. 计算语义相似度
+    # B. 计算语义相似度 (Semantic Similarity)
     sem_sim = _cosine_similarity(ui_embedding, tig_embedding)
     
-    # C. 计算关键词匹配分数
+    # C. 计算关键词匹配分数 (Keyword Match)
     keyword_score = _compute_keyword_match_for_tig(ui_description, tig_node)
     
-    # D. 加权融合
+    # D. 加权融合（与 grounder.py 保持一致）
     final_score = 0.7 * sem_sim + 0.3 * keyword_score
     
     return final_score
@@ -474,6 +672,10 @@ def _compute_keyword_match_for_tig(ui_description: str, tig_node: Dict[str, Any]
     """
     计算UI描述与TIG节点的关键词匹配分数
     
+    基于 grounder.py 的实现，通过三个维度计算关键词重合度：
+    1. Intent Label 匹配（60%权重）
+    2. Capabilities 匹配（40%权重）
+    
     Args:
         ui_description: UI描述
         tig_node: TIG节点数据
@@ -494,25 +696,16 @@ def _compute_keyword_match_for_tig(ui_description: str, tig_node: Dict[str, Any]
     capability_matches = 0
     for cap in capabilities[:20]:  # 只检查前20个能力
         cap_lower = cap.lower()
-        # 提取能力中的关键词
+        # 提取能力中的关键词（移除函数调用格式）
         cap_keywords = cap_lower.replace('(', ' ').replace(')', ' ').replace('_', ' ').split()
+        # 检查是否有长度>3的关键词出现在UI描述中
         if any(kw in ui_desc_lower for kw in cap_keywords if len(kw) > 3):
             capability_matches += 1
     
     capability_score = capability_matches / min(20, len(capabilities)) if capabilities else 0
     
-    # 3. UI Description匹配（如果TIG节点有ui_description字段）
-    ui_desc_score = 0.0
-    tig_ui_desc = tig_node.get('ui_description', '').lower()
-    if tig_ui_desc:
-        tig_keywords = set(tig_ui_desc.split())
-        ui_keywords = set(ui_desc_lower.split())
-        if tig_keywords and ui_keywords:
-            overlap = len(tig_keywords & ui_keywords)
-            ui_desc_score = overlap / len(tig_keywords | ui_keywords)
-    
-    # 综合分数
-    keyword_score = 0.4 * intent_score + 0.4 * capability_score + 0.2 * ui_desc_score
+    # 综合分数（与 grounder.py 保持一致的权重）
+    keyword_score = 0.6 * intent_score + 0.4 * capability_score
     
     return keyword_score
 
@@ -745,27 +938,177 @@ def _select_capability_for_step(step, current_screen, context_match) -> Capabili
         reason="No feasible capabilities found."
     )
 
-def _is_capability_feasible(cap_name, current_screen):
+# 全局能力可行性缓存
+_CAPABILITY_FEASIBILITY_CACHE = {}
+
+def _is_capability_feasible(cap_name, current_screen, context_match=None, use_llm=True):
     """
-    轻量级可行性分析。
-    不需要调用昂贵的视觉模型，只做关键词匹配。
+    使用 LLM 判断能力是否在当前屏幕上可行
+    
+    这个函数会：
+    1. 首先尝试使用 LLM 进行语义判断（推荐）
+    2. 如果 LLM 不可用或失败，降级到关键词匹配
+    3. 利用 TIG context 信息提高准确性
+    
+    Args:
+        cap_name: 能力名称，如 "BrowseMusic", "SelectTrack"
+        current_screen: 屏幕包装器对象
+        context_match: TIG 匹配结果（可选，用于增强判断）
+        use_llm: 是否使用 LLM（默认 True）
+        
+    Returns:
+        bool: 能力是否可行
+    """
+    # 特例：滚动通常总是可行的
+    if "scroll" in cap_name.lower(): 
+        return True
+    
+    # 生成缓存 key
+    screen_text = current_screen.get_all_text()
+    cache_key = hashlib.md5(f"{cap_name}|{screen_text[:200]}".encode()).hexdigest()
+    
+    # 检查缓存
+    if cache_key in _CAPABILITY_FEASIBILITY_CACHE:
+        return _CAPABILITY_FEASIBILITY_CACHE[cache_key]
+    
+    # 尝试使用 LLM 进行语义判断
+    if use_llm:
+        result = _check_capability_with_llm(cap_name, current_screen, context_match)
+        if result is not None:
+            _CAPABILITY_FEASIBILITY_CACHE[cache_key] = result
+            return result
+    
+    # Fallback: 使用关键词匹配
+    result = _check_capability_with_keywords(cap_name, current_screen)
+    _CAPABILITY_FEASIBILITY_CACHE[cache_key] = result
+    return result
+
+
+def _check_capability_with_llm(cap_name, current_screen, context_match=None):
+    """
+    使用 LLM 判断能力可行性（语义理解）
+    
+    Args:
+        cap_name: 能力名称
+        current_screen: 屏幕包装器
+        context_match: TIG 匹配结果（可选）
+        
+    Returns:
+        bool or None: True/False 表示判断结果，None 表示 LLM 不可用
+    """
+    llm_client = _get_llm_client()
+    if llm_client is None:
+        return None
+    
+    # 提取屏幕信息
+    screen_text = current_screen.get_all_text()
+    
+    # 提取可交互元素的描述
+    interactable = current_screen.get_interactable_elements()
+    element_descriptions = []
+    for elem in interactable[:15]:  # 只取前15个
+        label = elem.text or elem.content_desc or elem.resource_id.split('/')[-1] if '/' in elem.resource_id else ''
+        if label:
+            element_descriptions.append(label)
+    
+    # 构建提示词
+    prompt = f"""You are analyzing an Android app screen to determine if a specific capability is feasible.
+
+**Capability to check**: {cap_name}
+
+**Screen text content**: {screen_text[:300]}
+
+**Interactive elements**: {', '.join(element_descriptions[:10])}
+"""
+    
+    # 添加 TIG context 信息（如果有）
+    if context_match and context_match.get('matched_tig'):
+        tig_intent = context_match.get('top_candidates', [{}])[0].get('intent_label', '')
+        prompt += f"\n**Current screen context**: {tig_intent}"
+    
+    prompt += """
+
+**Task**: Determine if the capability can be executed on this screen.
+
+Consider:
+1. Semantic similarity: "BrowseMusic" is similar to "Browse_Tracks", "Browse_Albums"
+2. "SelectTrack" is similar to "Select_Song", "Select_Artist"
+3. The capability might use different wording but same intent
+4. Check if UI elements support the action (e.g., clickable items for selection)
+
+**Response format**: Reply with ONLY "YES" or "NO" (one word, no explanation)."""
+
+    try:
+        response = llm_client.run(prompt, max_tokens=10, temperature=0.0)
+        
+        # 处理响应
+        if isinstance(response, dict):
+            answer = response.get('content', '').strip().upper()
+        else:
+            answer = str(response).strip().upper()
+        
+        # 解析答案
+        if 'YES' in answer:
+            return True
+        elif 'NO' in answer:
+            return False
+        else:
+            # 无法解析，返回 None 触发 fallback
+            return None
+            
+    except Exception:
+        # LLM 调用失败，返回 None 触发 fallback
+        return None
+
+
+def _check_capability_with_keywords(cap_name, current_screen):
+    """
+    使用关键词匹配判断能力可行性（Fallback 方法）
+    
+    Args:
+        cap_name: 能力名称
+        current_screen: 屏幕包装器
+        
+    Returns:
+        bool: 能力是否可行
     """
     # 将 Capability 驼峰转关键词: "SelectTrack" -> {"select", "track"}
-    keywords = _parse_keywords_from_cap(cap_name) 
+    keywords = _parse_keywords_from_cap(cap_name)
     
-    # 简单规则：如果 Capability 的关键词在屏幕文本中出现，就认为"可行"
-    # 这比 Phase 2 的 Grounding 要宽容得多
+    # 获取屏幕文本和元素ID
     screen_text = current_screen.get_all_text().lower()
     
-    # 特例处理
-    if "scroll" in cap_name.lower(): return True # 滚动通常总是可行的
+    # 扩展搜索范围：也检查 resource-id
+    interactable = current_screen.get_interactable_elements()
+    element_ids = []
+    for elem in interactable[:20]:
+        if elem.resource_id:
+            res_id = elem.resource_id.split('/')[-1] if '/' in elem.resource_id else elem.resource_id
+            element_ids.append(res_id.lower())
     
-    # 检查是否有重合
+    all_searchable_text = screen_text + ' ' + ' '.join(element_ids)
+    
+    # 能力同义词映射（增强匹配）
+    capability_synonyms = {
+        'browse': ['library', 'list', 'view', 'show', 'explore'],
+        'select': ['choose', 'pick', 'click', 'tap'],
+        'track': ['song', 'music', 'audio', 'title'],
+        'album': ['collection', 'disc'],
+        'play': ['start', 'playback'],
+        'search': ['find', 'query', 'lookup'],
+    }
+    
+    # 扩展关键词
+    expanded_keywords = set(keywords)
     for kw in keywords:
-        if kw in screen_text:
-            return True
-            
-    return False
+        if kw in capability_synonyms:
+            expanded_keywords.update(capability_synonyms[kw])
+    
+    # 检查是否有重合（需要至少匹配 50% 的关键词）
+    matches = sum(1 for kw in expanded_keywords if kw in all_searchable_text)
+    match_ratio = matches / len(keywords) if keywords else 0
+    
+    return match_ratio >= 0.5
 
 def _find_navigation_capability(current_screen, target_tigs):
     """
